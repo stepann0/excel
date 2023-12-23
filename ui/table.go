@@ -34,10 +34,9 @@ func (t *Table) Layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
+		v.Frame = false
 	}
-	v.Frame = false
 	v.Clear()
-
 	t.drawGrid(v)
 	return nil
 }
