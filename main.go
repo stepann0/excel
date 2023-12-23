@@ -1,12 +1,53 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jroimartin/gocui"
+	tb "github.com/nsf/termbox-go"
 )
+
+type TextLabel struct {
+	name             string
+	text             string
+	x, y             int
+	w                int
+	BgColor, FgColor gocui.Attribute
+}
+
+func NewTextLabel(name, text string, x, y int) *TextLabel {
+	return &TextLabel{
+		name: name,
+		text: text,
+		x:    x, y: y,
+	}
+}
+
+func (l *TextLabel) Layout(g *gocui.Gui) error {
+	v, err := g.SetView(l.name, l.x, l.y, l.x+len(l.text)+1, l.y+2)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Frame = false
+		v.Editable = false
+		v.BgColor = l.BgColor
+		v.FgColor = l.FgColor
+		fmt.Fprint(v, l.text)
+	}
+	return nil
+}
+
+func (l *TextLabel) SetBgColor(color gocui.Attribute) {
+	l.BgColor = color
+}
+
+func (l *TextLabel) SetFgColor(color gocui.Attribute) {
+	l.FgColor = color
+}
 
 type InputLine struct {
 	name  string
@@ -46,8 +87,16 @@ type Table struct {
 	x, y         int
 	cols, rows   int
 	coloumnWidth int
-	rowHeight    int
 	data         [][]Cell
+}
+
+func NewTable(name string, x, y, cols, rows int) *Table {
+	return &Table{
+		name: name,
+		x:    x, y: y,
+		cols: cols, rows: rows,
+		coloumnWidth: 6,
+	}
 }
 
 func (t *Table) Layout(g *gocui.Gui) error {
@@ -93,14 +142,14 @@ func main() {
 	g.SelFgColor = gocui.ColorRed
 	g.Cursor = true
 
-	inp := NewInputLine("input", 1, 1, 70, true)
-	table := &Table{
-		name: "table",
-		x:    1, y: 4,
-		cols: 10, rows: 9,
-		coloumnWidth: 4,
-	}
-	g.SetManager(inp, table)
+	maxX, maxY := g.Size()
+	formulaInput := NewInputLine("formulaInput", 1, 1, 70, true)
+	cmdInput := NewInputLine("cmdInput", 8, maxY-2, maxX-10, true)
+	table := NewTable("table", 1, 4, 13, 15)
+	label := NewTextLabel("l1", "NORMAL", 0, maxY-2)
+	label.SetBgColor(gocui.Attribute(tb.ColorBlue))
+
+	g.SetManager(formulaInput, cmdInput, table, label)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
