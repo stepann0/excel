@@ -1,13 +1,54 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jroimartin/gocui"
 )
 
-type Cell string
+type CellType int
+
+const (
+	Text CellType = iota
+	Number
+	Formula
+)
+
+type Cell struct {
+	Widget
+	dtype  CellType
+	data   any
+	adress string
+}
+
+func NewCell(adress string, x, y, w, h int) *Cell {
+	return &Cell{
+		Widget: Widget{
+			name: "cell_" + adress,
+			x:    x,
+			y:    y,
+			w:    w,
+			h:    h,
+		},
+		adress: adress,
+	}
+}
+
+func (c *Cell) Layout(g *gocui.Gui) error {
+	v, err := c.Widget.BaseLayout(g)
+	if err == nil {
+		v.Frame = true
+	}
+	v.Clear()
+	fmt.Fprint(v, c)
+	return nil
+}
+
+func (c Cell) String() string {
+	return "==="
+}
 
 type Table struct {
 	Widget
