@@ -20,17 +20,21 @@ func main() {
 	g.Cursor = true
 
 	maxX, maxY := g.Size()
-	formulaInput := ui.NewInputLine("formulaInput", 1, 1, 70, true)
-	cmdInput := ui.NewInputLine("cmdInput", 8, maxY-2, maxX-10, false)
+	formulaInput := ui.NewInputLine("formulaInput", 2, 1, 70, true)
+	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
 	cmdInput.SetBgColor(gocui.Attribute(tb.ColorLightGray))
 
-	table := ui.NewTable("table", 1, 4, 13, 9)
-	label := ui.NewTextLabel("l1", "NORMAL", 0, maxY-2)
-	label.SetBgColor(gocui.Attribute(tb.ColorBlue))
+	table := ui.NewTable("table", 2, 5, 13, 9)
+	labelMode := ui.NewTextLabel("l1", "NORMAL", 0, maxY-2)
+	labelMode.SetBgColor(gocui.Attribute(tb.ColorBlue))
 
-	g.SetManager(formulaInput, cmdInput, table, label)
+	adressLabels := ui.NewAdressLabels(table)
 
+	g.SetManager(formulaInput, cmdInput, table, labelMode, adressLabels)
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeySpace, gocui.ModNone, insertFormula); err != nil {
 		log.Panicln(err)
 	}
 
@@ -41,4 +45,9 @@ func main() {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
+}
+
+func insertFormula(g *gocui.Gui, v *gocui.View) error {
+	g.SetCurrentView("formulaInput")
+	return nil
 }

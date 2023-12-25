@@ -44,7 +44,10 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		return err
 	}
 	v.Clear()
-	fmt.Fprint(v, c)
+	v.Frame = false
+	v.BgColor = gocui.Attribute(tb.ColorYellow)
+	v.FgColor = gocui.Attribute(tb.ColorBlack)
+	fmt.Fprint(v, c.name)
 	return nil
 }
 
@@ -78,24 +81,21 @@ func (t *Table) Layout(g *gocui.Gui) error {
 			return err
 		}
 		table_view.Frame = false
+		table_view.Editable = true
+		table_view.Editor = &TableEditor{}
+		table_view.SetCursor(1, 1)
 	}
 	table_view.Clear()
 	t.drawGrid(table_view)
 
 	t.PlaceCellsOnTable()
-	// panic(fmt.Sprint(t.data, len(t.data), len(t.data[0])))
 	for _, r := range t.data {
 		for _, c := range r {
 			if c == nil {
 				continue
 			}
-			cell_view, err := g.SetView(c.name, c.x, c.y, c.x+c.w, c.y+c.h)
-			if err != nil {
-				if err != gocui.ErrUnknownView {
-					return err
-				}
-				cell_view.Frame = false
-				cell_view.BgColor = gocui.Attribute(tb.ColorYellow)
+			if err := c.Layout(g); err != nil {
+				return err
 			}
 		}
 	}
@@ -126,7 +126,8 @@ func (t *Table) PlaceCellsOnTable() {
 		t.data = append(t.data, make([]*Cell, t.cols))
 		for c := 0; c < t.cols; c++ {
 			x, y := c*(t.coloumnWidth+1)+t.x, r*2+t.y
-			t.data[r][c] = NewCell(fmt.Sprintf("%d#%d", r, c), x, y, t.coloumnWidth+1, 2)
+			adress := fmt.Sprintf("%c%d", c%26+65, r+1)
+			t.data[r][c] = NewCell(adress, x, y, t.coloumnWidth+1, 2)
 		}
 	}
 }
