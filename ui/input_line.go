@@ -1,6 +1,6 @@
 package ui
 
-import "github.com/jroimartin/gocui"
+import "github.com/awesome-gocui/gocui"
 
 type InputLine struct {
 	Widget

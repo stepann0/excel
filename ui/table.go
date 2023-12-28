@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/awesome-gocui/gocui"
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jroimartin/gocui"
 )
 
 type CellType int
@@ -84,7 +84,7 @@ func NewTable(name string, x, y, cols, rows int) *Table {
 
 func (t *Table) Layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	table_view, err := g.SetView(t.name, t.x-1, t.y-1, maxX-3, maxY-2)
+	table_view, err := g.SetView(t.name, t.x-1, t.y-1, maxX-3, maxY-2, 0)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err

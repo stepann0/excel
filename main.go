@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 	"github.com/stepann0/tercel/ui"
 )
 
 func main() {
-	g, err := gocui.NewGui(gocui.OutputNormal)
+	g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
 		panic(err)
 	}

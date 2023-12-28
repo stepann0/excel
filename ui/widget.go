@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 type Widget struct {
@@ -25,7 +25,7 @@ func (w *Widget) SetFrame(b bool) {
 }
 
 func (w *Widget) BaseLayout(g *gocui.Gui) (*gocui.View, error) {
-	v, err := g.SetView(w.name, w.x, w.y, w.x+w.w, w.y+w.h)
+	v, err := g.SetView(w.name, w.x, w.y, w.x+w.w, w.y+w.h, 0)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return nil, err

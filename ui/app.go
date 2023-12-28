@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 type Mode int
@@ -56,7 +56,7 @@ func NewApp(
 }
 
 func (app *App) Layout(g *gocui.Gui) error {
-	v, err := g.SetView("main", 0, 0, 1, 1)
+	v, err := g.SetView("main", 0, 0, 1, 1, 0)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
