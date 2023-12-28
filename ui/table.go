@@ -6,7 +6,6 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jroimartin/gocui"
-	tb "github.com/nsf/termbox-go"
 )
 
 type CellType int
@@ -32,7 +31,7 @@ func NewCell(adress string, x, y, w, h int) *Cell {
 			y:    y,
 			w:    w,
 			h:    h,
-			bg:   gocui.Attribute(tb.ColorYellow),
+			bg:   gocui.ColorYellow,
 		},
 		adress: adress,
 	}
@@ -43,12 +42,18 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 	if err != nil {
 		return err
 	}
-	v.Clear()
 	v.Frame = false
-	v.BgColor = gocui.Attribute(tb.ColorYellow)
-	v.FgColor = gocui.Attribute(tb.ColorBlack)
+	v.Clear()
 	fmt.Fprint(v, c.name)
 	return nil
+}
+
+func (c *Cell) decomposeAddress() (string, string) {
+	i := 0
+	for i < len(c.adress) && c.adress[i] >= 'A' && c.adress[i] <= 'Z' {
+		i++
+	}
+	return c.adress[:i], c.adress[i:]
 }
 
 func (c Cell) String() string {
@@ -57,13 +62,14 @@ func (c Cell) String() string {
 
 type Table struct {
 	Widget
-	cols, rows   int
-	coloumnWidth int
-	data         [][]*Cell
+	cols, rows      int
+	coloumnWidth    int
+	data            [][]*Cell
+	currentCellAddr []int // address is []int{x, y}
 }
 
 func NewTable(name string, x, y, cols, rows int) *Table {
-	return &Table{
+	t := &Table{
 		Widget: Widget{
 			name: name,
 			x:    x, y: y,
@@ -71,6 +77,9 @@ func NewTable(name string, x, y, cols, rows int) *Table {
 		cols: cols, rows: rows,
 		coloumnWidth: 7,
 	}
+	t.createCells()
+	t.currentCellAddr = []int{0, 0}
+	return t
 }
 
 func (t *Table) Layout(g *gocui.Gui) error {
@@ -81,14 +90,10 @@ func (t *Table) Layout(g *gocui.Gui) error {
 			return err
 		}
 		table_view.Frame = false
-		table_view.Editable = true
-		table_view.Editor = &TableEditor{}
-		table_view.SetCursor(1, 1)
 	}
 	table_view.Clear()
 	t.drawGrid(table_view)
 
-	t.PlaceCellsOnTable()
 	for _, r := range t.data {
 		for _, c := range r {
 			if c == nil {
@@ -121,7 +126,7 @@ func (t *Table) drawGrid(view *gocui.View) {
 	T.Render()
 }
 
-func (t *Table) PlaceCellsOnTable() {
+func (t *Table) createCells() {
 	for r := 0; r < t.rows; r++ {
 		t.data = append(t.data, make([]*Cell, t.cols))
 		for c := 0; c < t.cols; c++ {
@@ -129,5 +134,22 @@ func (t *Table) PlaceCellsOnTable() {
 			adress := fmt.Sprintf("%c%d", c%26+65, r+1)
 			t.data[r][c] = NewCell(adress, x, y, t.coloumnWidth+1, 2)
 		}
+	}
+}
+
+func (t *Table) isCurrCell(row, col int) bool {
+	return row == t.currentCellAddr[0] && col == t.currentCellAddr[1]
+}
+
+func (t *Table) currCell() *Cell {
+	x, y := t.currentCellAddr[0], t.currentCellAddr[1]
+	return t.data[y][x]
+}
+
+func (t *Table) SetCurrCell(dx, dy int) {
+	x, y := t.currentCellAddr[0], t.currentCellAddr[1]
+	if x+dx >= 0 && x+dx < t.cols && y+dy >= 0 && y+dy < t.rows {
+		t.currentCellAddr[0] += dx
+		t.currentCellAddr[1] += dy
 	}
 }

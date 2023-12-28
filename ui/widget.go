@@ -1,6 +1,8 @@
 package ui
 
-import "github.com/jroimartin/gocui"
+import (
+	"github.com/jroimartin/gocui"
+)
 
 type Widget struct {
 	name   string

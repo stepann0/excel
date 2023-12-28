@@ -8,7 +8,8 @@ import (
 
 type TextLabel struct {
 	Widget
-	text string
+	text      string
+	writeFunc func(*gocui.View)
 }
 
 func NewTextLabel(name, text string, x, y int) *TextLabel {
@@ -21,6 +22,10 @@ func NewTextLabel(name, text string, x, y int) *TextLabel {
 			h:    2,
 		},
 		text,
+		func(v *gocui.View) {
+			v.Clear()
+			fmt.Fprint(v, text)
+		},
 	}
 }
 
@@ -29,15 +34,25 @@ func (l *TextLabel) Layout(g *gocui.Gui) error {
 	if err != nil {
 		return err
 	}
-
+	v.Clear()
 	fmt.Fprint(v, l.text)
 	return nil
+}
+
+func (l *TextLabel) SetBgColorama(g *gocui.Gui, color gocui.Attribute) {
+	g.Update(func(g *gocui.Gui) error {
+		v, err := g.View(l.name)
+		if err != nil {
+			panic(err)
+		}
+		v.BgColor = color
+		return nil
+	})
 }
 
 type AdressLabels struct {
 	NumLabels    []*TextLabel
 	LetterLabels []*TextLabel
-	activeAdress string
 	table        *Table
 }
 
@@ -73,4 +88,21 @@ func (a *AdressLabels) Layout(g *gocui.Gui) error {
 		}
 	}
 	return nil
+}
+
+func (a *AdressLabels) Highlight(g *gocui.Gui, color gocui.Attribute, letter, number *TextLabel) {
+	letter.SetBgColorama(g, color)
+	number.SetBgColorama(g, color)
+}
+
+func (a *AdressLabels) GetLabelsByIndex(row, col int) (*TextLabel, *TextLabel) {
+	if row < a.table.rows && col < a.table.cols {
+		return a.LetterLabels[col], a.NumLabels[row]
+	}
+	return nil, nil
+}
+
+func (a *AdressLabels) GetLabelsByAddress(address string) (*TextLabel, *TextLabel) {
+	col, row := address[0]-65, address[1]-49 // because 'A'-65 = 0, '1'-49 = 0
+	return a.GetLabelsByIndex(int(row), int(col))
 }
