@@ -31,20 +31,24 @@ func NewCell(adress string, x, y, w, h int) *Cell {
 			y:    y,
 			w:    w,
 			h:    h,
-			bg:   gocui.ColorYellow,
+			bg:   gocui.ColorDefault,
 		},
 		adress: adress,
 	}
 }
 
 func (c *Cell) Layout(g *gocui.Gui) error {
-	v, err := c.Widget.BaseLayout(g)
+	v, err := g.SetView(c.name, c.x, c.y, c.x+c.w, c.y+c.h, 0)
 	if err != nil {
-		return err
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Frame = false
 	}
-	v.Frame = false
+	v.BgColor = c.bg
+	v.FgColor = c.fg
 	v.Clear()
-	fmt.Fprint(v, c.name)
+	fmt.Fprint(v, c)
 	return nil
 }
 
@@ -57,7 +61,10 @@ func (c *Cell) decomposeAddress() (string, string) {
 }
 
 func (c Cell) String() string {
-	return "==="
+	if c.data == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", c.data)
 }
 
 type Table struct {
@@ -94,10 +101,15 @@ func (t *Table) Layout(g *gocui.Gui) error {
 	table_view.Clear()
 	t.drawGrid(table_view)
 
-	for _, r := range t.data {
-		for _, c := range r {
+	for i, r := range t.data {
+		for j, c := range r {
 			if c == nil {
 				continue
+			}
+			if t.isCurrCell(j, i) {
+				c.bg = gocui.ColorGreen
+			} else {
+				c.bg = gocui.ColorDefault
 			}
 			if err := c.Layout(g); err != nil {
 				return err
@@ -137,8 +149,8 @@ func (t *Table) createCells() {
 	}
 }
 
-func (t *Table) isCurrCell(row, col int) bool {
-	return row == t.currentCellAddr[0] && col == t.currentCellAddr[1]
+func (t *Table) isCurrCell(x, y int) bool {
+	return x == t.currentCellAddr[0] && y == t.currentCellAddr[1]
 }
 
 func (t *Table) currCell() *Cell {

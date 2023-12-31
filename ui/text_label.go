@@ -30,10 +30,15 @@ func NewTextLabel(name, text string, x, y int) *TextLabel {
 }
 
 func (l *TextLabel) Layout(g *gocui.Gui) error {
-	v, err := l.Widget.BaseLayout(g)
+	v, err := g.SetView(l.name, l.x, l.y, l.x+l.w, l.y+l.h, 0)
 	if err != nil {
-		return err
+		if err != gocui.ErrUnknownView {
+			return err
+		}
 	}
+	v.Frame = l.frame
+	v.BgColor = l.bg
+	v.FgColor = l.fg
 	v.Clear()
 	fmt.Fprint(v, l.text)
 	return nil

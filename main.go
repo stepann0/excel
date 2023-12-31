@@ -6,14 +6,11 @@ import (
 )
 
 func main() {
-	g, err := gocui.NewGui(gocui.OutputNormal, true)
+	g, err := gocui.NewGui(gocui.OutputNormal, false)
 	if err != nil {
 		panic(err)
 	}
 	defer g.Close()
-
-	g.Highlight = true
-	g.SelFgColor = gocui.ColorGreen
 	g.Cursor = true
 
 	maxX, maxY := g.Size()
@@ -28,6 +25,7 @@ func main() {
 
 	app := ui.NewApp(g, ui.NORMAL, table, adressLabels, formulaInput, cmdInput, modeLabel)
 	g.SetManager(formulaInput, cmdInput, modeLabel, table, adressLabels, app)
+
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		panic(err)
 	}

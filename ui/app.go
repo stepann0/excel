@@ -33,7 +33,6 @@ type App struct {
 	formulaInput *InputLine
 	cmdInput     *InputLine
 	modeLabel    *TextLabel
-	i            int
 }
 
 func NewApp(
@@ -56,17 +55,19 @@ func NewApp(
 }
 
 func (app *App) Layout(g *gocui.Gui) error {
-	v, err := g.SetView("main", 0, 0, 1, 1, 0)
+	maxX, maxY := g.Size()
+	v, err := g.SetView("main", 0, 0, maxX-1, maxY-1, 0)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
+		v.Visible = false
 		v.Frame = false
 		v.Editable = true
 		v.Editor = app
-	}
-	if _, err := g.SetCurrentView("main"); err != nil {
-		return err
+		if _, err := g.SetCurrentView("main"); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -83,11 +84,17 @@ func (app *App) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) 
 }
 
 func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.SetModeLabel()
+	if _, err := app.g.SetCurrentView("main"); err != nil {
+		panic(err)
+	}
 	switch {
 	case ch == 'i':
 		app.mode = INSERT
+		app.InsertMode(v, key, ch, mod)
 	case ch == ':':
 		app.mode = COMMAND
+		app.CommandMode(v, key, ch, mod)
 	case ch == 'j' || key == gocui.KeyArrowDown:
 		app.MoveDown()
 	case ch == 'k' || key == gocui.KeyArrowUp:
@@ -100,32 +107,90 @@ func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 	// TODO: handle other keybindings...
 }
 
-func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)  {}
-func (app *App) CommandMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {}
-
-func (app *App) MoveCurrCell(dx, dy int) {
-	// unhightlight previous
-	app.Highlight(app.table.currCell().name, gocui.ColorYellow, gocui.ColorBlack)
-	app.HighlightCurrIndexes(gocui.ColorDefault)
-
-	// hightlight next
-	app.table.SetCurrCell(dx, dy)
-	app.Highlight(app.table.currCell().name, gocui.ColorGreen, gocui.ColorDefault)
-	app.HighlightCurrIndexes(gocui.ColorYellow)
-
-	table_view, _ := app.g.View("table")
-	app.setCursorOnCurrCell(table_view)
+func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.SetModeLabel()
+	line, err := app.g.SetCurrentView("formulaInput")
+	if err != nil {
+		panic(err)
+	}
+	line.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+		switch key {
+		case gocui.KeySpace:
+			line.EditWrite(' ')
+		case gocui.KeyBackspace, gocui.KeyBackspace2:
+			line.EditDelete(true)
+		case gocui.KeyDelete:
+			line.EditDelete(false)
+		case gocui.KeyInsert:
+			line.Overwrite = !line.Overwrite
+		case gocui.KeyArrowDown:
+			line.MoveCursor(0, 1)
+		case gocui.KeyArrowUp:
+			line.MoveCursor(0, -1)
+		case gocui.KeyArrowLeft:
+			line.MoveCursor(-1, 0)
+		case gocui.KeyArrowRight:
+			line.MoveCursor(1, 0)
+		case gocui.KeyTab:
+			line.EditWrite('\t')
+		case gocui.KeyEnter:
+			c := app.table.currCell()
+			c.data = line.Buffer()
+		case gocui.KeyEsc:
+			app.mode = NORMAL
+			app.NormalMode(v, key, ch, mod)
+		default:
+			line.EditWrite(ch)
+		}
+	})
 }
 
-func (app *App) setCursorOnCurrCell(table_view *gocui.View) {
-	row, col := app.table.currentCellAddr[0], app.table.currentCellAddr[1]
-	cell := app.table.data[row][col]
-	table_view.SetCursor(cell.x-1, cell.y-4)
+func (app *App) CommandMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.SetModeLabel()
+	cmdInput, err := app.g.SetCurrentView("cmdInput")
+	if err != nil {
+		panic(err)
+	}
+	cmdInput.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+		switch key {
+		case gocui.KeySpace:
+			cmdInput.EditWrite(' ')
+		case gocui.KeyBackspace, gocui.KeyBackspace2:
+			cmdInput.EditDelete(true)
+		case gocui.KeyDelete:
+			cmdInput.EditDelete(false)
+		case gocui.KeyInsert:
+			cmdInput.Overwrite = !cmdInput.Overwrite
+		case gocui.KeyArrowDown:
+			cmdInput.MoveCursor(0, 1)
+		case gocui.KeyArrowUp:
+			cmdInput.MoveCursor(0, -1)
+		case gocui.KeyArrowLeft:
+			cmdInput.MoveCursor(-1, 0)
+		case gocui.KeyArrowRight:
+			cmdInput.MoveCursor(1, 0)
+		case gocui.KeyTab:
+			cmdInput.EditWrite('\t')
+		case gocui.KeyEnter:
+			c := app.table.currCell()
+			c.data = cmdInput.Buffer()
+		case gocui.KeyEsc:
+			app.mode = NORMAL
+			app.NormalMode(v, key, ch, mod)
+		default:
+			cmdInput.EditWrite(ch)
+		}
+	})
+}
+
+func (app *App) MoveCurrCell(dx, dy int) {
+	app.HighlightCurrIndexes(gocui.ColorDefault)
+	app.table.SetCurrCell(dx, dy)
+	app.HighlightCurrIndexes(gocui.ColorYellow | gocui.AttrBold)
 }
 
 func (app *App) MoveDown() {
 	app.MoveCurrCell(0, 1)
-
 }
 
 func (app *App) MoveUp() {
@@ -141,23 +206,36 @@ func (app *App) MoveRight() {
 }
 
 func (app *App) Highlight(name string, bg, fg gocui.Attribute) {
-	app.g.Update(func(g *gocui.Gui) error {
-		v, err := g.View(name)
-		if err != nil {
-			panic(err)
-		}
-		v.FgColor = fg
-		v.BgColor = bg
-		return nil
-	})
+	v, err := app.g.View(name)
+	if err != nil {
+		panic(err)
+	}
+	v.FgColor = fg
+	v.BgColor = bg
 }
 
 func (app *App) HighlightCurrIndexes(fg gocui.Attribute) {
-	l, n := app.table.currCell().decomposeAddress()
-	app.Highlight("label_"+l, gocui.ColorDefault, fg)
-	app.Highlight("label_"+n, gocui.ColorDefault, fg)
+	letter, num := app.table.currentCellAddr[0], app.table.currentCellAddr[1]
+	app.labels.LetterLabels[letter].fg = fg
+	app.labels.NumLabels[num].fg = fg
 }
 
-func (app *App) Update(func(*gocui.Gui) error) {
+func (app *App) SetModeLabel() {
+	app.modeLabel.text = app.mode.String()
+	bg := gocui.ColorDefault
+	fg := gocui.ColorDefault
 
+	switch app.mode {
+	case NORMAL:
+		bg = gocui.ColorBlue
+		fg = gocui.ColorBlack
+	case INSERT:
+		bg = gocui.ColorGreen
+		fg = gocui.ColorBlack
+	case COMMAND:
+		bg = gocui.ColorMagenta
+		fg = gocui.ColorWhite
+	}
+	app.modeLabel.bg = bg
+	app.modeLabel.fg = fg | gocui.AttrBold
 }
