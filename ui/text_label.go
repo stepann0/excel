@@ -44,17 +44,6 @@ func (l *TextLabel) Layout(g *gocui.Gui) error {
 	return nil
 }
 
-func (l *TextLabel) SetBgColorama(g *gocui.Gui, color gocui.Attribute) {
-	g.Update(func(g *gocui.Gui) error {
-		v, err := g.View(l.name)
-		if err != nil {
-			panic(err)
-		}
-		v.BgColor = color
-		return nil
-	})
-}
-
 type AdressLabels struct {
 	NumLabels    []*TextLabel
 	LetterLabels []*TextLabel
@@ -80,24 +69,30 @@ func NewAdressLabels(t *Table) *AdressLabels {
 }
 
 func (a *AdressLabels) Layout(g *gocui.Gui) error {
-	for _, l := range a.LetterLabels {
+	x, y := a.table.currentCellAddr[0], a.table.currentCellAddr[1]
+	for i, l := range a.LetterLabels {
+		l.fg = gocui.ColorDefault
+		if i == x {
+			l.fg = gocui.ColorYellow | gocui.AttrBold
+		}
+
 		err := l.Layout(g)
 		if err != nil {
 			return err
 		}
 	}
-	for _, l := range a.NumLabels {
+	for i, l := range a.NumLabels {
+		l.fg = gocui.ColorDefault
+		if i == y {
+			l.fg = gocui.ColorYellow | gocui.AttrBold
+		}
+
 		err := l.Layout(g)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (a *AdressLabels) Highlight(g *gocui.Gui, color gocui.Attribute, letter, number *TextLabel) {
-	letter.SetBgColorama(g, color)
-	number.SetBgColorama(g, color)
 }
 
 func (a *AdressLabels) GetLabelsByIndex(row, col int) (*TextLabel, *TextLabel) {

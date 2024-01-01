@@ -20,8 +20,7 @@ func main() {
 	table := ui.NewTable("table", 2, 5, 13, 9)
 
 	adressLabels := ui.NewAdressLabels(table)
-	modeLabel := ui.NewTextLabel("modeLabel", "NORMAL", 0, maxY-2)
-	modeLabel.SetBgColor(gocui.ColorBlue)
+	modeLabel := ui.NewTextLabel("modeLabel", "      ", 0, maxY-2)
 
 	app := ui.NewApp(g, ui.NORMAL, table, adressLabels, formulaInput, cmdInput, modeLabel)
 	g.SetManager(formulaInput, cmdInput, modeLabel, table, adressLabels, app)

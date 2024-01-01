@@ -43,7 +43,7 @@ func NewApp(
 	formulaInput *InputLine,
 	cmdInput *InputLine,
 	modeLabel *TextLabel) *App {
-	return &App{
+	app := &App{
 		g:            g,
 		mode:         mode,
 		labels:       labels,
@@ -52,6 +52,8 @@ func NewApp(
 		cmdInput:     cmdInput,
 		modeLabel:    modeLabel,
 	}
+	app.SetModeLabel()
+	return app
 }
 
 func (app *App) Layout(g *gocui.Gui) error {
@@ -184,9 +186,7 @@ func (app *App) CommandMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mod
 }
 
 func (app *App) MoveCurrCell(dx, dy int) {
-	app.HighlightCurrIndexes(gocui.ColorDefault)
 	app.table.SetCurrCell(dx, dy)
-	app.HighlightCurrIndexes(gocui.ColorYellow | gocui.AttrBold)
 }
 
 func (app *App) MoveDown() {
