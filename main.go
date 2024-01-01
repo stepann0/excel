@@ -1,7 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/awesome-gocui/gocui"
+	"github.com/stepann0/tercel/csv"
 	"github.com/stepann0/tercel/ui"
 )
 
@@ -17,7 +20,8 @@ func main() {
 	formulaInput := ui.NewInputLine("formulaInput", 2, 1, 70, true)
 	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
 	cmdInput.SetBgColor(gocui.ColorBlack)
-	table := ui.NewTable("table", 2, 5, 13, 9)
+	table := ui.NewTable("table", 3, 5, 13, 10)
+	csv.LoadCSV(table, os.Args[1])
 
 	adressLabels := ui.NewAdressLabels(table)
 	modeLabel := ui.NewTextLabel("modeLabel", "      ", 0, maxY-2)

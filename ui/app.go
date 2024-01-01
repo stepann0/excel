@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/awesome-gocui/gocui"
+	"github.com/stepann0/tercel/formula"
 )
 
 type Mode int
@@ -137,7 +138,8 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 			line.EditWrite('\t')
 		case gocui.KeyEnter:
 			c := app.table.currCell()
-			c.data = line.Buffer()
+			data, dtype := formula.ConvertType(line.Buffer())
+			c.Put(data, dtype)
 		case gocui.KeyEsc:
 			app.mode = NORMAL
 			app.NormalMode(v, key, ch, mod)

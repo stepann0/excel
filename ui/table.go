@@ -6,19 +6,12 @@ import (
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/jedib0t/go-pretty/v6/table"
-)
-
-type CellType int
-
-const (
-	Text CellType = iota
-	Number
-	Formula
+	"github.com/stepann0/tercel/formula"
 )
 
 type Cell struct {
 	Widget
-	dtype  CellType
+	dtype  formula.CellType
 	data   any
 	adress string
 }
@@ -45,6 +38,15 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		}
 		v.Frame = false
 	}
+	switch c.dtype {
+	case formula.Number:
+		c.fg = gocui.ColorBlue
+	case formula.Text:
+		c.fg = gocui.ColorGreen
+	case formula.Formula:
+		c.fg = gocui.ColorMagenta
+	}
+
 	v.BgColor = c.bg
 	v.FgColor = c.fg
 	v.Clear()
@@ -58,6 +60,11 @@ func (c *Cell) decomposeAddress() (string, string) {
 		i++
 	}
 	return c.adress[:i], c.adress[i:]
+}
+
+func (c *Cell) Put(data any, dtype formula.CellType) {
+	c.data = data
+	c.dtype = dtype
 }
 
 func (c Cell) String() string {
@@ -106,10 +113,10 @@ func (t *Table) Layout(g *gocui.Gui) error {
 			if c == nil {
 				continue
 			}
+			c.bg = gocui.ColorDefault
+			c.fg = gocui.ColorDefault
 			if t.isCurrCell(j, i) {
-				c.bg = gocui.ColorGreen
-			} else {
-				c.bg = gocui.ColorDefault
+				c.bg = gocui.GetColor("grey")
 			}
 			if err := c.Layout(g); err != nil {
 				return err
@@ -164,4 +171,12 @@ func (t *Table) SetCurrCell(dx, dy int) {
 		t.currentCellAddr[0] += dx
 		t.currentCellAddr[1] += dy
 	}
+}
+
+func (t *Table) Put(x, y int, data any, dtype formula.CellType) {
+	t.data[y][x].Put(data, dtype)
+}
+
+func (t *Table) Size() (int, int) {
+	return t.cols, t.rows
 }
