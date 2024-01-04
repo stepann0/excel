@@ -14,7 +14,6 @@ func main() {
 		panic(err)
 	}
 	defer g.Close()
-	g.Cursor = true
 
 	maxX, maxY := g.Size()
 	formulaInput := ui.NewInputLine("formulaInput", 2, 1, 70, true)

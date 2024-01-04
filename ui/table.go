@@ -71,7 +71,11 @@ func (c Cell) String() string {
 	if c.data == nil {
 		return ""
 	}
-	return fmt.Sprintf("%v", c.data)
+	text := fmt.Sprint(c.data)
+	if len(text) >= c.w {
+		text = text[:c.w-2] + "…"
+	}
+	return text
 }
 
 type Table struct {
@@ -116,7 +120,7 @@ func (t *Table) Layout(g *gocui.Gui) error {
 			c.bg = gocui.ColorDefault
 			c.fg = gocui.ColorDefault
 			if t.isCurrCell(j, i) {
-				c.bg = gocui.GetColor("grey")
+				c.bg = gocui.GetColor("gray")
 			}
 			if err := c.Layout(g); err != nil {
 				return err

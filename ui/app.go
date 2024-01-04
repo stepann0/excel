@@ -87,6 +87,7 @@ func (app *App) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) 
 }
 
 func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.g.Cursor = false
 	app.SetModeLabel()
 	if _, err := app.g.SetCurrentView("main"); err != nil {
 		panic(err)
@@ -111,6 +112,7 @@ func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 }
 
 func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.g.Cursor = true
 	app.SetModeLabel()
 	line, err := app.g.SetCurrentView("formulaInput")
 	if err != nil {
@@ -150,6 +152,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 }
 
 func (app *App) CommandMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.g.Cursor = true
 	app.SetModeLabel()
 	cmdInput, err := app.g.SetCurrentView("cmdInput")
 	if err != nil {
