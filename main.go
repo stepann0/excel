@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/awesome-gocui/gocui"
-	"github.com/stepann0/tercel/csv"
+	"github.com/stepann0/tercel/data"
+	"github.com/stepann0/tercel/formula"
 	"github.com/stepann0/tercel/ui"
 )
 
@@ -19,8 +21,10 @@ func main() {
 	formulaInput := ui.NewInputLine("formulaInput", 2, 1, 70, true)
 	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
 	cmdInput.SetBgColor(gocui.ColorBlack)
-	table := ui.NewTable("table", 3, 5, 13, 10)
-	csv.LoadCSV(table, os.Args[1])
+
+	data_table := data.NewTable(13, 10)
+	data.LoadCSV(data_table, os.Args[1])
+	table := ui.NewTable("table", 3, 5, data_table)
 
 	adressLabels := ui.NewAdressLabels(table)
 	modeLabel := ui.NewTextLabel("modeLabel", "      ", 0, maxY-2)
@@ -39,4 +43,24 @@ func main() {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
+}
+
+func _main() {
+	exp := []string{
+		"max((34+1), -(pow(2, 5)), 3.1415)",
+		"max(pow(3, -(3)), 0)",
+		"max(min(1, 10), 2/3*3.1415)",
+		"sin(max(min(1, 10), 2/3*3.1415))",
+		"-cos(max(min(1, 10), 2/3*3.1415))",
+		"avg(-3, -2, -1, 0, 1, 0)",
+		"max(4/24, 5/25/2*4, 6/26, 7/27, 8/28)",
+		"-(-(-(-4)))",
+		"-A1",
+		"(B2:C7)",
+		"B6:H5",
+		"max((CC8), ((B2:B2)))",
+	}
+	for _, e := range exp {
+		fmt.Println(formula.Parse(e))
+	}
 }

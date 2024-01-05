@@ -18,6 +18,7 @@ const (
 	TokOpen
 	TokClose
 	TokComma
+	TokColon
 	TokNumber
 	TokOperator
 	TokReference
@@ -39,7 +40,7 @@ func (t Token) String() string {
 }
 
 // returns true if token belongs to one of the arguments
-// argument can only be: "*", "/", "+", "-", "(", ")", ","
+// argument can only be: "*", "/", "+", "-", "(", ")", ",", ":",
 // "eof", "ref", "num", "func"
 func (t *Token) oneOf(types ...string) bool {
 	res := []bool{}
@@ -65,6 +66,8 @@ func (t *Token) is(s string) bool {
 		return t.TokType == TokClose && t.value == ')'
 	case ",":
 		return t.TokType == TokComma && t.value == ','
+	case ":":
+		return t.TokType == TokColon && t.value == ':'
 	case "eof":
 		return t.TokType == TokEOF && t.value == nil
 	case "ref":
@@ -103,6 +106,8 @@ func (l *Lexer) NextToken() Token {
 		switch {
 		case s == ',':
 			return Token{TokComma, s}
+		case s == ':':
+			return Token{TokColon, s}
 		case s == '(':
 			return Token{TokOpen, s}
 		case s == ')':

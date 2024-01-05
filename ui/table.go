@@ -6,17 +6,16 @@ import (
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/stepann0/tercel/formula"
+	"github.com/stepann0/tercel/data"
 )
 
 type Cell struct {
 	Widget
-	dtype  formula.CellType
-	data   any
+	cell   *data.DataCell
 	adress string
 }
 
-func NewCell(adress string, x, y, w, h int) *Cell {
+func NewCell(adress string, x, y, w, h int, cell *data.DataCell) *Cell {
 	return &Cell{
 		Widget: Widget{
 			name: "cell_" + adress,
@@ -26,6 +25,7 @@ func NewCell(adress string, x, y, w, h int) *Cell {
 			h:    h,
 			bg:   gocui.ColorDefault,
 		},
+		cell:   cell,
 		adress: adress,
 	}
 }
@@ -38,12 +38,12 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		}
 		v.Frame = false
 	}
-	switch c.dtype {
-	case formula.Number:
+	switch c.cell.Type() {
+	case data.Number:
 		c.fg = gocui.ColorBlue
-	case formula.Text:
+	case data.Text:
 		c.fg = gocui.ColorGreen
-	case formula.Formula:
+	case data.Formula:
 		c.fg = gocui.ColorMagenta
 	}
 
@@ -62,16 +62,11 @@ func (c *Cell) decomposeAddress() (string, string) {
 	return c.adress[:i], c.adress[i:]
 }
 
-func (c *Cell) Put(data any, dtype formula.CellType) {
-	c.data = data
-	c.dtype = dtype
-}
-
 func (c Cell) String() string {
-	if c.data == nil {
+	if c.cell.Data() == nil {
 		return ""
 	}
-	text := fmt.Sprint(c.data)
+	text := fmt.Sprint(c.cell.Data())
 	if len(text) >= c.w {
 		text = text[:c.w-2] + "…"
 	}
@@ -80,19 +75,21 @@ func (c Cell) String() string {
 
 type Table struct {
 	Widget
+	DataTable       *data.DataTable
 	cols, rows      int
+	cells           [][]*Cell
 	coloumnWidth    int
-	data            [][]*Cell
 	currentCellAddr []int // address is []int{x, y}
 }
 
-func NewTable(name string, x, y, cols, rows int) *Table {
+func NewTable(name string, x, y int, data *data.DataTable) *Table {
 	t := &Table{
 		Widget: Widget{
 			name: name,
 			x:    x, y: y,
 		},
-		cols: cols, rows: rows,
+		DataTable: data,
+		cols:      data.Cols(), rows: data.Rows(),
 		coloumnWidth: 7,
 	}
 	t.createCells()
@@ -112,7 +109,7 @@ func (t *Table) Layout(g *gocui.Gui) error {
 	table_view.Clear()
 	t.drawGrid(table_view)
 
-	for i, r := range t.data {
+	for i, r := range t.cells {
 		for j, c := range r {
 			if c == nil {
 				continue
@@ -151,11 +148,11 @@ func (t *Table) drawGrid(view *gocui.View) {
 
 func (t *Table) createCells() {
 	for r := 0; r < t.rows; r++ {
-		t.data = append(t.data, make([]*Cell, t.cols))
+		t.cells = append(t.cells, make([]*Cell, t.cols))
 		for c := 0; c < t.cols; c++ {
 			x, y := c*(t.coloumnWidth+1)+t.x, r*2+t.y
 			adress := fmt.Sprintf("%c%d", c%26+65, r+1)
-			t.data[r][c] = NewCell(adress, x, y, t.coloumnWidth+1, 2)
+			t.cells[r][c] = NewCell(adress, x, y, t.coloumnWidth+1, 2, t.DataTable.At(c, r))
 		}
 	}
 }
@@ -166,7 +163,7 @@ func (t *Table) isCurrCell(x, y int) bool {
 
 func (t *Table) currCell() *Cell {
 	x, y := t.currentCellAddr[0], t.currentCellAddr[1]
-	return t.data[y][x]
+	return t.cells[y][x]
 }
 
 func (t *Table) SetCurrCell(dx, dy int) {
@@ -175,12 +172,4 @@ func (t *Table) SetCurrCell(dx, dy int) {
 		t.currentCellAddr[0] += dx
 		t.currentCellAddr[1] += dy
 	}
-}
-
-func (t *Table) Put(x, y int, data any, dtype formula.CellType) {
-	t.data[y][x].Put(data, dtype)
-}
-
-func (t *Table) Size() (int, int) {
-	return t.cols, t.rows
 }

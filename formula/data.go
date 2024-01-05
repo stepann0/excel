@@ -1,26 +1,23 @@
 package formula
 
 import (
+	"fmt"
 	"math"
-	"strconv"
 )
 
-type CellType int
-
-const (
-	Text CellType = iota
-	Number
-	Formula
-)
-
-func ConvertType(record string) (any, CellType) {
-	if record[0] == '=' {
-		return record, Formula
+func oneArgFunc(name string, f ...float64) func(float64) float64 {
+	if len(f) != 1 {
+		panic(fmt.Errorf("function %s: expected only one argument, got %d", name, len(f)))
 	}
-	if n, err := strconv.ParseFloat(record, 64); err == nil {
-		return n, Number
+	switch name {
+	case "sin":
+		return math.Sin
+	case "cos":
+		return math.Cos
+	case "tan":
+		return math.Tan
 	}
-	return record, Text
+	return func(f float64) float64 { return f }
 }
 
 func getFunc(name string) func(...float64) float64 {
@@ -33,12 +30,44 @@ func getFunc(name string) func(...float64) float64 {
 			}
 			return res
 		}
-	case "sin":
+	case "avg":
 		return func(f ...float64) float64 {
-			if len(f) != 1 {
-				panic("expected only one argument")
+			sum := 0.0
+			for _, i := range f {
+				sum += i
 			}
-			return math.Sin(f[0])
+			return sum / float64(len(f))
+		}
+	case "sin", "cos", "tan":
+		return func(f ...float64) float64 {
+			return oneArgFunc(name, f...)(f[0])
+		}
+	case "pow":
+		return func(f ...float64) float64 {
+			if len(f) != 2 {
+				panic("expected only two arguments")
+			}
+			return math.Pow(f[0], f[1])
+		}
+	case "max":
+		return func(f ...float64) float64 {
+			res := math.Inf(-1)
+			for _, i := range f {
+				if i >= res {
+					res = i
+				}
+			}
+			return res
+		}
+	case "min":
+		return func(f ...float64) float64 {
+			res := math.Inf(1)
+			for _, i := range f {
+				if i <= res {
+					res = i
+				}
+			}
+			return res
 		}
 	}
 	return nil
