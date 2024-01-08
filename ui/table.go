@@ -76,6 +76,17 @@ func (c Cell) String() string {
 	return text
 }
 
+func (c Cell) InputString() string {
+	if c.Data() == nil {
+		return ""
+	}
+	text := fmt.Sprint(c.Data())
+	if c.Type() == data.Formula {
+		text = c.Data().(data.FormulaData).Expr
+	}
+	return text
+}
+
 func (c *Cell) Type() data.CellType {
 	return c.cell.Type()
 }

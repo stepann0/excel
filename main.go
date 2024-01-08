@@ -17,14 +17,13 @@ func main() {
 	defer g.Close()
 
 	maxX, maxY := g.Size()
-	formulaInput := ui.NewInputLine("formulaInput", 2, 1, 70, true)
-	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
-	cmdInput.SetBgColor(gocui.ColorBlack)
-
 	data_table := data.NewTable(13, 10)
 	data.LoadCSV(data_table, os.Args[1])
 	table := ui.NewTable("table", 3, 5, data_table)
 
+	formulaInput := ui.NewFormulaInput("formulaInput", 2, 1, 70, true, table)
+	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
+	cmdInput.SetBgColor(gocui.ColorBlack)
 	adressLabels := ui.NewAdressLabels(table)
 	modeLabel := ui.NewTextLabel("modeLabel", "      ", 0, maxY-2)
 

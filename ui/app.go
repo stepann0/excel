@@ -31,7 +31,7 @@ type App struct {
 	mode         Mode
 	labels       *AdressLabels
 	table        *Table
-	formulaInput *InputLine
+	formulaInput *FormulaInput
 	cmdInput     *InputLine
 	modeLabel    *TextLabel
 }
@@ -41,7 +41,7 @@ func NewApp(
 	mode Mode,
 	table *Table,
 	labels *AdressLabels,
-	formulaInput *InputLine,
+	formulaInput *FormulaInput,
 	cmdInput *InputLine,
 	modeLabel *TextLabel) *App {
 	app := &App{
@@ -87,11 +87,13 @@ func (app *App) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) 
 }
 
 func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.mode = NORMAL
 	app.g.Cursor = false
 	app.SetModeLabel()
 	if _, err := app.g.SetCurrentView("main"); err != nil {
 		panic(err)
 	}
+	app.formulaInput.isInput = false
 	switch {
 	case ch == 'i':
 		app.mode = INSERT
@@ -112,12 +114,14 @@ func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 }
 
 func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.mode = INSERT
 	app.g.Cursor = true
 	app.SetModeLabel()
 	line, err := app.g.SetCurrentView("formulaInput")
 	if err != nil {
 		panic(err)
 	}
+	app.formulaInput.isInput = true
 	line.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		switch key {
 		case gocui.KeySpace:
@@ -142,6 +146,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 			c := app.table.currCell()
 			data, dtype := data.ConvertType(line.Buffer())
 			app.table.DataTable.PutRef(c.adress, data, dtype)
+			app.NormalMode(v, key, ch, mod)
 		case gocui.KeyEsc:
 			app.mode = NORMAL
 			app.NormalMode(v, key, ch, mod)
@@ -152,6 +157,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 }
 
 func (app *App) CommandMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	app.mode = COMMAND
 	app.g.Cursor = true
 	app.SetModeLabel()
 	cmdInput, err := app.g.SetCurrentView("cmdInput")
