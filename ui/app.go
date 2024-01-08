@@ -121,6 +121,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 	if err != nil {
 		panic(err)
 	}
+	line.SetCursor(len(line.Buffer()), 0)
 	app.formulaInput.isInput = true
 	line.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		switch key {

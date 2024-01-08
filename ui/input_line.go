@@ -70,6 +70,5 @@ func (i *InputLine) Layout(g *gocui.Gui) error {
 	v.BgColor = i.bg
 	v.FgColor = i.fg
 	v.Editable = true
-	v.SetCursor(len(v.Buffer()), 0)
 	return nil
 }

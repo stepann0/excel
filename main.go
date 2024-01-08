@@ -21,7 +21,7 @@ func main() {
 	data.LoadCSV(data_table, os.Args[1])
 	table := ui.NewTable("table", 3, 5, data_table)
 
-	formulaInput := ui.NewFormulaInput("formulaInput", 2, 1, 70, true, table)
+	formulaInput := ui.NewFormulaInput("formulaInput", 3, 1, 70, true, table)
 	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
 	cmdInput.SetBgColor(gocui.ColorBlack)
 	adressLabels := ui.NewAdressLabels(table)
