@@ -141,7 +141,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 		case gocui.KeyEnter:
 			c := app.table.currCell()
 			data, dtype := data.ConvertType(line.Buffer())
-			c.cell.Put(data, dtype)
+			app.table.DataTable.PutRef(c.adress, data, dtype)
 		case gocui.KeyEsc:
 			app.mode = NORMAL
 			app.NormalMode(v, key, ch, mod)

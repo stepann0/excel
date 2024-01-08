@@ -38,14 +38,14 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		}
 		v.Frame = false
 	}
-	switch c.cell.Type() {
-	case data.Number:
-		c.fg = gocui.ColorBlue
-	case data.Text:
-		c.fg = gocui.ColorGreen
-	case data.Formula:
-		c.fg = gocui.ColorMagenta
-	}
+	// switch c.Type() {
+	// case data.Number:
+	// 	c.fg = gocui.ColorBlue
+	// case data.Text:
+	// 	c.fg = gocui.ColorGreen
+	// case data.Formula:
+	// 	c.fg = gocui.ColorMagenta
+	// }
 
 	v.BgColor = c.bg
 	v.FgColor = c.fg
@@ -63,14 +63,25 @@ func (c *Cell) decomposeAddress() (string, string) {
 }
 
 func (c Cell) String() string {
-	if c.cell.Data() == nil {
+	if c.Data() == nil {
 		return ""
 	}
-	text := fmt.Sprint(c.cell.Data())
+	text := fmt.Sprint(c.Data())
+	if c.Type() == data.Formula {
+		text = fmt.Sprint(c.Data().(data.FormulaData).Val)
+	}
 	if len(text) >= c.w {
 		text = text[:c.w-2] + "…"
 	}
 	return text
+}
+
+func (c *Cell) Type() data.CellType {
+	return c.cell.Type()
+}
+
+func (c *Cell) Data() any {
+	return c.cell.Data()
 }
 
 type Table struct {

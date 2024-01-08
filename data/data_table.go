@@ -1,5 +1,10 @@
 package data
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type CellType int
 
 const (
@@ -8,6 +13,11 @@ const (
 	Number
 	Formula
 )
+
+type FormulaData struct {
+	Expr string
+	Val  float64
+}
 
 type DataCell struct {
 	dtype CellType
@@ -55,7 +65,67 @@ func (t *DataTable) At(x, y int) *DataCell {
 	return t.data[y][x]
 }
 
+func (t *DataTable) AtRef(ref string) *DataCell {
+	x, y := refToInd(ref)
+	return t.At(x, y)
+}
+
+func (t *DataTable) PutRef(ref string, data any, dtype CellType) {
+	x, y := refToInd(ref)
+	t.Put(x, y, data, dtype)
+}
+
 func (t *DataTable) Put(x, y int, data any, dtype CellType) {
+	if dtype == Formula {
+		expr := data.(string)
+		p := NewParser(expr, t)
+		data = FormulaData{expr, p.Eval()}
+	}
 	c := t.At(x, y)
 	c.Put(data, dtype)
+}
+
+func (t *DataTable) GetCol(num int) []any {
+	if !(num >= 0 && num < t.cols) {
+		panic("colomn out of table")
+	}
+	res := []any{}
+	for r := 0; r < t.rows; r++ {
+		res = append(res, t.At(num, r).data)
+	}
+	return res
+}
+
+func (t *DataTable) GetRow(num int) []any {
+	if !(num >= 0 && num < t.rows) {
+		panic("row out of table")
+	}
+	res := []any{}
+	for _, c := range t.data[num] {
+		res = append(res, c.data)
+	}
+	return res
+}
+
+func (t *DataTable) GetRange(ref1, ref2 string) []any {
+	col1, row1 := refToInd(ref1)
+	col2, row2 := refToInd(ref2)
+	if row1 != row2 && col1 != col2 {
+		panic(fmt.Errorf("range dimentions error: %s:%s", ref1, ref2))
+	}
+	if row1 == row2 {
+		// return a row
+		return t.GetRow(row1)[col1 : col2+1]
+	}
+	if col1 == col2 {
+		// return a coloumn
+		return t.GetCol(col1)[row1 : row2+1]
+	}
+	panic(fmt.Errorf("range dimentions error: %s:%s", ref1, ref2))
+}
+
+func refToInd(ref string) (int, int) {
+	x := int(ref[0] - 65) // 'A'-65 = 0
+	y, _ := strconv.Atoi(ref[1:])
+	return x, y - 1
 }
