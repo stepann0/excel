@@ -5,10 +5,7 @@ import (
 	"math"
 )
 
-func oneArgFunc(name string, f ...float64) func(float64) float64 {
-	if len(f) != 1 {
-		panic(fmt.Errorf("function %s: expected only one argument, got %d", name, len(f)))
-	}
+func oneArgFunc(name string) func(float64) float64 {
 	switch name {
 	case "sin":
 		return math.Sin
@@ -20,54 +17,89 @@ func oneArgFunc(name string, f ...float64) func(float64) float64 {
 	return func(f float64) float64 { return f }
 }
 
-func getFunc(name string) func(...float64) float64 {
+func getFunc(name string) func(...Result) Result {
 	switch name {
 	case "sum":
-		return func(f ...float64) float64 {
-			res := 0.0
-			for _, i := range f {
-				res += i
+		return func(args ...Result) Result {
+			res := result(0.0)
+			for _, i := range args {
+				if i.typ == ResRange {
+					// unpack range
+					for _, j := range floatRange(i.val.([]any)) {
+						res.add(result(j))
+					}
+					continue
+				}
+				res.add(i)
 			}
 			return res
 		}
 	case "avg":
-		return func(f ...float64) float64 {
-			sum := 0.0
-			for _, i := range f {
-				sum += i
+		return func(args ...Result) Result {
+			sum := result(0.0)
+			for _, i := range args {
+				if i.typ == ResRange {
+					// unpack range
+					for _, j := range floatRange(i.val.([]any)) {
+						sum.add(result(j))
+					}
+					continue
+				}
+				sum.add(i)
 			}
-			return sum / float64(len(f))
+			sum.div(result(len(args)))
+			return sum
 		}
 	case "sin", "cos", "tan":
-		return func(f ...float64) float64 {
-			return oneArgFunc(name, f...)(f[0])
+		return func(f ...Result) Result {
+			if len(f) != 1 {
+				panic(fmt.Errorf("function %s: expected one argument, got %d", name, len(f)))
+			}
+			if f[0].typ != ResNumber {
+				panic(fmt.Errorf("function %s: argument must be a number", name))
+			}
+			arg := f[0].val.(float64)
+			return result(oneArgFunc(name)(arg))
 		}
 	case "pow":
-		return func(f ...float64) float64 {
+		return func(f ...Result) Result {
 			if len(f) != 2 {
-				panic("expected only two arguments")
+				panic(fmt.Errorf("function pow: expected two arguments, got %d", len(f)))
 			}
-			return math.Pow(f[0], f[1])
+			if f[0].typ != ResNumber || f[1].typ != ResNumber {
+				panic("function pow: both arguments must be numbers")
+			}
+			arg1 := f[0].val.(float64)
+			arg2 := f[1].val.(float64)
+			return result(math.Pow(arg1, arg2))
 		}
 	case "max":
-		return func(f ...float64) float64 {
+		return func(f ...Result) Result {
 			res := math.Inf(-1)
 			for _, i := range f {
-				if i >= res {
-					res = i
+				if i.typ != ResNumber {
+					panic("function max: all arguments must be a numbers")
+				}
+				num := i.val.(float64)
+				if num >= res {
+					res = num
 				}
 			}
-			return res
+			return result(res)
 		}
 	case "min":
-		return func(f ...float64) float64 {
+		return func(f ...Result) Result {
 			res := math.Inf(1)
 			for _, i := range f {
-				if i <= res {
-					res = i
+				if i.typ != ResNumber {
+					panic("function min: all arguments must be a numbers")
+				}
+				num := i.val.(float64)
+				if num <= res {
+					res = num
 				}
 			}
-			return res
+			return result(res)
 		}
 	}
 	return nil

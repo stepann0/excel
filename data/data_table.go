@@ -16,7 +16,7 @@ const (
 
 type FormulaData struct {
 	Expr string
-	Val  float64
+	Val  Result
 }
 
 type DataCell struct {
