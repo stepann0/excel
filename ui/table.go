@@ -45,6 +45,10 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		c.fg = gocui.ColorGreen
 	case data.Formula:
 		c.fg = gocui.ColorMagenta
+		result := c.Data().(data.FormulaData).Val
+		if result.Type() == data.ResError {
+			c.fg = gocui.ColorRed
+		}
 	}
 
 	v.BgColor = c.bg
