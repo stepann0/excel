@@ -60,7 +60,6 @@ func (a *Result) add(b Result) {
 		return
 	}
 	*a = result(fmt.Errorf("can't add %v and %v", a, b))
-	// panic(fmt.Errorf("can't add %v and %v", a, b))
 }
 
 func (a *Result) sub(b Result) {
@@ -69,7 +68,7 @@ func (a *Result) sub(b Result) {
 		a.val = n1 - n2
 		return
 	}
-	panic(fmt.Errorf("can't sub %v and %v", a, b))
+	*a = result(fmt.Errorf("can't sub %v and %v", a, b))
 }
 
 func (a *Result) mul(b Result) {
@@ -78,7 +77,7 @@ func (a *Result) mul(b Result) {
 		a.val = n1 * n2
 		return
 	}
-	panic(fmt.Errorf("can't multiply %v and %v", a, b))
+	*a = result(fmt.Errorf("can't multiply %v and %v", a, b))
 }
 
 func (a *Result) div(b Result) {
@@ -87,7 +86,7 @@ func (a *Result) div(b Result) {
 		a.val = n1 / n2
 		return
 	}
-	panic(fmt.Errorf("can't divide %v and %v", a, b))
+	*a = result(fmt.Errorf("can't divide %v and %v", a, b))
 }
 
 func (a *Result) neg() {
@@ -95,7 +94,7 @@ func (a *Result) neg() {
 		a.val = -a.val.(float64)
 		return
 	}
-	panic(fmt.Errorf("can't negate %v", a))
+	*a = result(fmt.Errorf("can't negate %v", a))
 }
 
 // <expr>    = <term> {("+" | "-") <term>}
