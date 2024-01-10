@@ -38,14 +38,14 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		}
 		v.Frame = false
 	}
-	// switch c.Type() {
-	// case data.Number:
-	// 	c.fg = gocui.ColorBlue
-	// case data.Text:
-	// 	c.fg = gocui.ColorGreen
-	// case data.Formula:
-	// 	c.fg = gocui.ColorMagenta
-	// }
+	switch c.Type() {
+	case data.Number:
+		c.fg = gocui.ColorBlue
+	case data.Text:
+		c.fg = gocui.ColorGreen
+	case data.Formula:
+		c.fg = gocui.ColorMagenta
+	}
 
 	v.BgColor = c.bg
 	v.FgColor = c.fg
@@ -68,7 +68,17 @@ func (c Cell) String() string {
 	}
 	text := fmt.Sprint(c.Data())
 	if c.Type() == data.Formula {
-		text = fmt.Sprint(c.Data().(data.FormulaData).Val)
+		result := c.Data().(data.FormulaData).Val
+		switch result.Type() {
+		case data.ResError:
+			text = fmt.Sprintf("%5s", "###")
+		case data.ResNil:
+			text = ""
+		case data.ResNumber:
+			text = fmt.Sprint(result.Value().(float64))
+		case data.ResRange:
+			text = "#rng"
+		}
 	}
 	if len(text) >= c.w {
 		text = text[:c.w-2] + "…"

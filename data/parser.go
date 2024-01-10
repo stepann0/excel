@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	ResNil int = iota
+	ResError int = iota
+	ResNil
 	ResNumber
 	ResRange
 )
@@ -21,17 +22,19 @@ func result(val any) Result {
 		return Result{}
 	case []any:
 		return Result{ResRange, val}
-	case int:
+	case int, int32, int64, float32:
 		return Result{ResNumber, float64(val.(int))}
 	case float64:
 		return Result{ResNumber, val}
 	}
-	panic(fmt.Errorf("unknown type of value: %v, type %T", val, val))
+	return Result{ResError, fmt.Errorf("unknown type of value: %v, type %T", val, val)}
 }
 
 func (r Result) String() string {
 	var t string
 	switch r.typ {
+	case ResError:
+		t = "err"
 	case ResNil:
 		t = "nil"
 	case ResNumber:
@@ -42,13 +45,22 @@ func (r Result) String() string {
 	return fmt.Sprintf("{%s %v}", t, r.val)
 }
 
+func (r *Result) Type() int {
+	return r.typ
+}
+
+func (r *Result) Value() any {
+	return r.val
+}
+
 func (a *Result) add(b Result) {
 	if a.typ == ResNumber && b.typ == ResNumber {
 		n1, n2 := a.val.(float64), b.val.(float64)
 		a.val = n1 + n2
 		return
 	}
-	panic(fmt.Errorf("can't add %v and %v", a, b))
+	*a = result(fmt.Errorf("can't add %v and %v", a, b))
+	// panic(fmt.Errorf("can't add %v and %v", a, b))
 }
 
 func (a *Result) sub(b Result) {
@@ -114,12 +126,12 @@ func (p *Parser) eat() {
 	p.tok = p.lex.NextToken()
 }
 
-func (p *Parser) expect(tok, msg string) {
+func (p *Parser) expect(tok, msg string) error {
 	if p.tok.is(tok) {
 		p.eat()
-		return
+		return nil
 	}
-	panic(fmt.Errorf("invalid syntax: %s", msg))
+	return fmt.Errorf("invalid syntax: %s", msg)
 }
 
 func (p *Parser) expr() Result {
@@ -174,7 +186,11 @@ func (p *Parser) base() Result {
 		p.expect(")", "missing ')'")
 		return res
 	} else if p.tok.is("func") {
-		f := getFunc(p.tok.value.(string))
+		func_name := p.tok.value.(string)
+		f := getFunc(func_name)
+		if f == nil {
+			return result(fmt.Errorf("function '%s' not implemented", func_name))
+		}
 		p.eat()
 		p.expect("(", "missing '('")
 		args := p.argList()
@@ -187,18 +203,25 @@ func (p *Parser) base() Result {
 		if p.tok.is(":") {
 			p.eat()
 			ref2 := p.tok
-			p.expect("ref", "missing reference after ':'")
+			if err := p.expect("ref", "missing reference after ':'"); err != nil {
+				return result(err)
+			}
 			rng := p.dt.GetRange(ref1.value.(string), ref2.value.(string))
 			return result(rng)
 		}
-		cell_data := p.dt.AtRef(ref1.value.(string)).Data()
+		cell := p.dt.AtRef(ref1.value.(string))
+		if cell == nil {
+			return result(fmt.Errorf("no such cell"))
+		}
+
+		cell_data := cell.Data()
 		if cell_data == nil {
 			return result(nil)
 		}
 		if num, ok := cell_data.(float64); ok {
 			return result(num)
 		}
-		panic("formula can accept only numeric data")
+		return result(fmt.Errorf("formula can accept only numeric data"))
 	}
 	return result(nil)
 }

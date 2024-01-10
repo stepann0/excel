@@ -62,6 +62,9 @@ func (t *DataTable) Rows() int {
 }
 
 func (t *DataTable) At(x, y int) *DataCell {
+	if !(x >= 0 && x < t.cols && y >= 0 && y < t.rows) {
+		return nil
+	}
 	return t.data[y][x]
 }
 

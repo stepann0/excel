@@ -53,10 +53,10 @@ func getFunc(name string) func(...Result) Result {
 	case "sin", "cos", "tan":
 		return func(f ...Result) Result {
 			if len(f) != 1 {
-				panic(fmt.Errorf("function %s: expected one argument, got %d", name, len(f)))
+				return result(fmt.Errorf("function %s: expected one argument, got %d", name, len(f)))
 			}
 			if f[0].typ != ResNumber {
-				panic(fmt.Errorf("function %s: argument must be a number", name))
+				return result(fmt.Errorf("function %s: argument must be a number", name))
 			}
 			arg := f[0].val.(float64)
 			return result(oneArgFunc(name)(arg))
@@ -64,10 +64,10 @@ func getFunc(name string) func(...Result) Result {
 	case "pow":
 		return func(f ...Result) Result {
 			if len(f) != 2 {
-				panic(fmt.Errorf("function pow: expected two arguments, got %d", len(f)))
+				return result(fmt.Errorf("function pow: expected two arguments, got %d", len(f)))
 			}
 			if f[0].typ != ResNumber || f[1].typ != ResNumber {
-				panic("function pow: both arguments must be numbers")
+				return result(fmt.Errorf("function pow: both arguments must be numbers"))
 			}
 			arg1 := f[0].val.(float64)
 			arg2 := f[1].val.(float64)
@@ -78,7 +78,7 @@ func getFunc(name string) func(...Result) Result {
 			res := math.Inf(-1)
 			for _, i := range f {
 				if i.typ != ResNumber {
-					panic("function max: all arguments must be a numbers")
+					return result(fmt.Errorf("function max: all arguments must be a numbers"))
 				}
 				num := i.val.(float64)
 				if num >= res {
@@ -92,7 +92,7 @@ func getFunc(name string) func(...Result) Result {
 			res := math.Inf(1)
 			for _, i := range f {
 				if i.typ != ResNumber {
-					panic("function min: all arguments must be a numbers")
+					return result(fmt.Errorf("function min: all arguments must be a numbers"))
 				}
 				num := i.val.(float64)
 				if num <= res {

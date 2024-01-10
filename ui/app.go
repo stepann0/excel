@@ -98,6 +98,11 @@ func (app *App) NormalMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 	case ch == 'i':
 		app.mode = INSERT
 		app.InsertMode(v, key, ch, mod)
+	case ch == '=':
+		app.mode = INSERT
+		f, _ := app.g.View(app.formulaInput.name)
+		f.Write([]byte{'='})
+		app.InsertMode(v, key, ch, mod)
 	case ch == ':':
 		app.mode = COMMAND
 		app.CommandMode(v, key, ch, mod)
