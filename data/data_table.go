@@ -10,13 +10,13 @@ type CellType int
 const (
 	Null CellType = iota
 	Text
-	Number
+	Number__
 	Formula
 )
 
 type FormulaData struct {
 	Expr string
-	Val  Result
+	Val  any
 }
 
 type DataCell struct {
@@ -80,9 +80,9 @@ func (t *DataTable) PutRef(ref string, data any, dtype CellType) {
 
 func (t *DataTable) Put(x, y int, data any, dtype CellType) {
 	if dtype == Formula {
-		expr := data.(string)
-		p := NewParser(expr, t)
-		data = FormulaData{expr, p.Eval()}
+		// expr := data.(string)
+		// p := NewParser(expr, t)
+		// data = FormulaData{expr, p.Eval()}
 	}
 	c := t.At(x, y)
 	c.Put(data, dtype)

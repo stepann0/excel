@@ -37,7 +37,7 @@ func ConvertType(record string) (any, CellType) {
 		return record, Formula
 	}
 	if n, err := strconv.ParseFloat(record, 64); err == nil {
-		return n, Number
+		return n, Number__
 	}
 	return record, Text
 }

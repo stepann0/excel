@@ -23,20 +23,16 @@ const (
 	TokOperator
 	TokReference
 	TokFunc
+	TokBool
 )
 
 type Token struct {
-	TokType TokenType
-	value   any
+	T       TokenType
+	literal string
 }
 
 func (t Token) String() string {
-	val := fmt.Sprint(t.value)
-	switch t.value.(type) {
-	case rune:
-		val = fmt.Sprintf("%c", t.value)
-	}
-	return fmt.Sprintf("{%d %s}", t.TokType, val)
+	return fmt.Sprintf("tok:{%#v %s}", t.T, t.literal)
 }
 
 // returns true if token belongs to one of the arguments
@@ -53,35 +49,37 @@ func (t *Token) oneOf(types ...string) bool {
 func (t *Token) is(s string) bool {
 	switch s {
 	case "+":
-		return t.TokType == TokOperator && t.value == '+'
+		return t.T == TokOperator && t.literal == s
 	case "-":
-		return t.TokType == TokOperator && t.value == '-'
+		return t.T == TokOperator && t.literal == s
 	case "*":
-		return t.TokType == TokOperator && t.value == '*'
+		return t.T == TokOperator && t.literal == s
 	case "/":
-		return t.TokType == TokOperator && t.value == '/'
+		return t.T == TokOperator && t.literal == s
 	case "(":
-		return t.TokType == TokOpen && t.value == '('
+		return t.T == TokOpen
 	case ")":
-		return t.TokType == TokClose && t.value == ')'
+		return t.T == TokClose
 	case ",":
-		return t.TokType == TokComma && t.value == ','
+		return t.T == TokComma
 	case ":":
-		return t.TokType == TokColon && t.value == ':'
+		return t.T == TokColon
 	case "eof":
-		return t.TokType == TokEOF && t.value == nil
+		return t.T == TokEOF
 	case "ref":
-		return t.TokType == TokReference
+		return t.T == TokReference
 	case "num":
-		return t.TokType == TokNumber
+		return t.T == TokNumber
 	case "func":
-		return t.TokType == TokFunc
+		return t.T == TokFunc
+	case "bool":
+		return t.T == TokBool
 	}
 	return false
 }
 
 func (t *Token) EOF() bool {
-	return t.TokType == TokEOF && t.value == nil
+	return t.T == TokEOF
 }
 
 type Lexer struct {
@@ -99,27 +97,27 @@ func (l *Lexer) NextToken() Token {
 		s, _, err := l.reader.ReadRune()
 		if err != nil {
 			if err == io.EOF {
-				return Token{TokEOF, nil}
+				return Token{TokEOF, ""}
 			}
 			panic(err)
 		}
 		switch {
 		case s == ',':
-			return Token{TokComma, s}
+			return Token{TokComma, string(s)}
 		case s == ':':
-			return Token{TokColon, s}
+			return Token{TokColon, string(s)}
 		case s == '(':
-			return Token{TokOpen, s}
+			return Token{TokOpen, string(s)}
 		case s == ')':
-			return Token{TokClose, s}
+			return Token{TokClose, string(s)}
 		case s == '+':
-			return Token{TokOperator, s}
+			return Token{TokOperator, string(s)}
 		case s == '-':
-			return Token{TokOperator, s}
+			return Token{TokOperator, string(s)}
 		case s == '*':
-			return Token{TokOperator, s}
+			return Token{TokOperator, string(s)}
 		case s == '/':
-			return Token{TokOperator, s}
+			return Token{TokOperator, string(s)}
 		case isDigit(s) || s == '.':
 			l.reader.UnreadRune()
 			n, err := l.ReadNumber()
@@ -132,7 +130,10 @@ func (l *Lexer) NextToken() Token {
 			id := l.ReadIdentifier()
 			if isRef(id) {
 				return Token{TokReference, id}
+			} else if id == "TRUE" || id == "FALSE" {
+				return Token{TokBool, id}
 			}
+
 			return Token{TokFunc, id}
 		case s == ' ' || s == '\t' || s == '\r':
 			continue
@@ -155,11 +156,14 @@ func (l *Lexer) ReadWhile(f func(rune) bool) bytes.Buffer {
 	return buf
 }
 
-func (l *Lexer) ReadNumber() (float64, error) {
+func (l *Lexer) ReadNumber() (string, error) {
 	buf := l.ReadWhile(func(r rune) bool {
 		return isDigit(r) || r == '.'
 	})
-	return strconv.ParseFloat(buf.String(), 64)
+	if _, err := strconv.ParseFloat(buf.String(), 64); err != nil {
+		return buf.String(), err
+	}
+	return buf.String(), nil
 }
 
 func (l *Lexer) ReadIdentifier() string {
