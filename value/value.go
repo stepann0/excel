@@ -1,4 +1,4 @@
-package data
+package value
 
 // Types that formula can return and cell can hold
 type ValueType int
@@ -36,6 +36,20 @@ type Boolean struct {
 }
 
 func (b Boolean) Type() ValueType { return BooleanType }
+
+func (b *Boolean) ToInt() Number[int] {
+	if b.Val {
+		return Number[int]{1}
+	}
+	return Number[int]{0}
+}
+
+func (b *Boolean) ToFloat() Number[float64] {
+	if b.Val {
+		return Number[float64]{1.0}
+	}
+	return Number[float64]{0.0}
+}
 
 // Area
 type Area struct {

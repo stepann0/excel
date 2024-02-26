@@ -1,6 +1,11 @@
-package data
+package formula
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/stepann0/tercel/functions"
+	V "github.com/stepann0/tercel/value"
+)
 
 var (
 	ParseError          = fmt.Errorf("parse error")
@@ -8,55 +13,65 @@ var (
 	NotImplementedError = fmt.Errorf("not implemented")
 )
 
-func (n *NumberLit[NumType]) Eval() Value { return Number[NumType]{n.val} }
-func (s *StringLit) Eval() Value          { return String{s.val} }
-func (b *BoolLit) Eval() Value            { return Boolean{bool(*b)} }
+func (n *NumberLit[NumType]) Eval() V.Value { return V.Number[NumType]{Val: n.val} }
+func (s *StringLit) Eval() V.Value          { return V.String{Val: s.val} }
+func (b *BoolLit) Eval() V.Value            { return V.Boolean{Val: bool(*b)} }
 
-func (op *BiOperator) Eval() Value {
+func (op *BiOperator) Eval() V.Value {
 	if op.token.is(":") {
 		// ref1, ref2 := op.left.tokenLiteral(), op.right.tokenLiteral()
-		return Error{NotImplementedError}
+		return V.Error{Msg: NotImplementedError}
 	}
 
-	a, ok_a := op.left.Eval().(Number[float64])
-	b, ok_b := op.right.Eval().(Number[float64])
+	a, ok_a := op.left.Eval().(V.Number[float64])
+	b, ok_b := op.right.Eval().(V.Number[float64])
 	if !(ok_a || ok_b) {
-		return Error{TypeError}
+		return V.Error{Msg: TypeError}
 	}
 
 	switch {
 	case op.token.is("+"):
-		return Number[float64]{a.Val + b.Val}
+		return V.Number[float64]{Val: a.Val + b.Val}
 	case op.token.is("-"):
-		return Number[float64]{a.Val - b.Val}
+		return V.Number[float64]{Val: a.Val - b.Val}
 	case op.token.is("*"):
-		return Number[float64]{a.Val * b.Val}
+		return V.Number[float64]{Val: a.Val * b.Val}
 	case op.token.is("/"):
-		return Number[float64]{a.Val / b.Val}
+		return V.Number[float64]{Val: a.Val / b.Val}
 	}
 	return nil
 }
 
-func (op *UnOperator) Eval() Value {
+func (op *UnOperator) Eval() V.Value {
 	if op.token.is("-") {
-		a, ok := op.right.Eval().(Number[float64])
+		a, ok := op.right.Eval().(V.Number[float64])
 		if !ok {
-			return Error{TypeError}
+			return V.Error{Msg: TypeError}
 		}
-		return Number[float64]{-a.Val}
+		return V.Number[float64]{Val: -a.Val}
 	}
 	return nil
 }
 
-func (fc *FuncCall) Eval() Value {
-	return nil
+func (fc *FuncCall) Eval() V.Value {
+	args := []V.Value{}
+	for _, a := range fc.args {
+		args = append(args, a.Eval())
+	}
+	switch fc.tokenLiteral() {
+	case "sin":
+		return functions.Sin(args[0])
+	case "sum":
+		return functions.Sum(args)
+	}
+	return V.Error{Msg: NotImplementedError}
 }
 
-func (ref *ReferenceLit) Eval() Value {
+func (ref *ReferenceLit) Eval() V.Value {
 	// return ref.table.At(ref.tokenLiteral())
 	return nil
 }
 
-func (e *ParseErrorNode) Eval() Value {
-	return Error{e.body}
+func (e *ParseErrorNode) Eval() V.Value {
+	return V.Error{Msg: e.body}
 }

@@ -1,9 +1,11 @@
-package data
+package formula
+
+import "github.com/stepann0/tercel/value"
 
 type Node interface {
 	tokenLiteral() string
 	inspect(int) string
-	Eval() Value
+	Eval() value.Value
 }
 
 // --- Numbers ---
