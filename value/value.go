@@ -14,6 +14,7 @@ const (
 
 type Value interface {
 	Type() ValueType
+	String() string
 }
 
 // Numbers

@@ -5,6 +5,11 @@ import (
 	"strconv"
 )
 
+const (
+	TRUE_LITERAL  = "TRUE"
+	FALSE_LITERAL = "FALSE"
+)
+
 type CellType int
 
 const (
@@ -35,6 +40,14 @@ func (c *DataCell) Put(text string) {
 	}
 
 	c.Type = ConstValue
+	if text == TRUE_LITERAL {
+		c.Data = Boolean{true}
+		return
+	}
+	if text == FALSE_LITERAL {
+		c.Data = Boolean{false}
+		return
+	}
 	var int_n int64
 	var float_n float64
 	var err error

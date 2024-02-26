@@ -11,7 +11,7 @@ import (
 
 type Cell struct {
 	Widget
-	cell   *V.DataCell
+	dcell  *V.DataCell // Underlying data cell
 	adress string
 }
 
@@ -25,7 +25,7 @@ func NewCell(adress string, x, y, w, h int, cell *V.DataCell) *Cell {
 			h:    h,
 			bg:   gocui.ColorDefault,
 		},
-		cell:   cell,
+		dcell:  cell,
 		adress: adress,
 	}
 }
@@ -40,7 +40,7 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 	}
 
 	v.BgColor = c.bg
-	v.FgColor = c.fg
+	v.FgColor = c.colorizeFg()
 	v.Clear()
 	fmt.Fprint(v, c)
 	return nil
@@ -58,23 +58,42 @@ func (c Cell) String() string {
 	if c.Data() == nil {
 		return ""
 	}
-	text := fmt.Sprint(c.Data())
+	text := c.Data().String()
 	if len(text) >= c.w {
 		text = text[:c.w-2] + "…"
 	}
 	return text
 }
 
+func (c Cell) colorizeFg() gocui.Attribute {
+	switch c.Type() {
+	case V.Formula:
+		return gocui.ColorMagenta
+	case V.ConstValue:
+		switch c.dcell.Data.Type() {
+		case V.NumberType:
+			return gocui.ColorBlue
+		case V.StringType:
+			return gocui.ColorGreen
+		case V.BooleanType:
+			return gocui.ColorCyan
+		case V.ErrorType:
+			return gocui.ColorRed
+		}
+	}
+	return gocui.ColorDefault
+}
+
 func (c *Cell) InputString() string {
-	return c.cell.Text
+	return c.dcell.Text
 }
 
 func (c *Cell) Type() V.CellType {
-	return c.cell.Type
+	return c.dcell.Type
 }
 
 func (c *Cell) Data() V.Value {
-	return c.cell.Data
+	return c.dcell.Data
 }
 
 type Table struct {

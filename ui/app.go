@@ -149,6 +149,12 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 			line.EditWrite('\t')
 		case gocui.KeyEnter:
 			// Put value in cell
+			text := line.Buffer()
+			cell := app.table.currCell()
+			cell.dcell.Put(text)
+
+			app.mode = NORMAL
+			app.NormalMode(v, key, ch, mod)
 		case gocui.KeyEsc:
 			app.mode = NORMAL
 			app.NormalMode(v, key, ch, mod)
