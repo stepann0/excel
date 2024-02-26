@@ -26,13 +26,41 @@ const (
 	TokBool
 )
 
+func (t TokenType) String() string {
+	switch t {
+	case TokEOF:
+		return "eof"
+	case TokErr:
+		return "err"
+	case TokOpen:
+		return "lparen"
+	case TokClose:
+		return "rparen"
+	case TokComma:
+		return "comma"
+	case TokColon:
+		return "colon"
+	case TokNumber:
+		return "num"
+	case TokOperator:
+		return "op"
+	case TokReference:
+		return "ref"
+	case TokFunc:
+		return "func"
+	case TokBool:
+		return "bool"
+	}
+	return ""
+}
+
 type Token struct {
 	T       TokenType
 	literal string
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("tok:{%#v %s}", t.T, t.literal)
+	return fmt.Sprintf("tok:{%s '%s'}", t.T, t.literal)
 }
 
 // returns true if token belongs to one of the arguments

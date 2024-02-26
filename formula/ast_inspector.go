@@ -2,6 +2,11 @@ package formula
 
 import "strings"
 
+const (
+	OPEN  = "{"
+	CLOSE = "}"
+)
+
 func shift(level int) string {
 	return strings.Repeat("  ", level)
 }
@@ -9,9 +14,9 @@ func shift(level int) string {
 func node_header(node Node) string {
 	switch node.(type) {
 	case *FuncCall:
-		return "fn.<" + node.tokenLiteral() + ">("
+		return "fn[" + node.tokenLiteral() + "]" + OPEN
 	case *BiOperator, *UnOperator:
-		return "op.<" + node.tokenLiteral() + ">("
+		return "op[" + node.tokenLiteral() + "]" + OPEN
 	}
 	return node.tokenLiteral()
 }
@@ -26,7 +31,7 @@ func (f *FuncCall) inspect(level int) string {
 	for _, arg := range f.args {
 		repr += arg.inspect(level+1) + "\n"
 	}
-	repr += shift(level) + ")"
+	repr += shift(level) + CLOSE
 	return repr
 }
 
@@ -37,7 +42,7 @@ func (o *BiOperator) inspect(level int) string {
 	repr += "\n"
 	repr += o.left.inspect(level+1) + "\n"
 	repr += o.right.inspect(level+1) + "\n"
-	repr += shift(level) + ")"
+	repr += shift(level) + CLOSE
 	return repr
 }
 
@@ -45,7 +50,7 @@ func (o *UnOperator) inspect(level int) string {
 	repr := shift(level) + node_header(o)
 	repr += "\n"
 	repr += o.right.inspect(level+1) + "\n"
-	repr += shift(level) + ")"
+	repr += shift(level) + CLOSE
 	return repr
 }
 

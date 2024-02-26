@@ -108,7 +108,7 @@ func (p *Parser) base() Node {
 		}
 		return ref1
 	}
-	panic("expected number, function, reference or '('")
+	panic("expected number, function, reference, bool or '('")
 }
 
 func (p *Parser) argList() []Node {
