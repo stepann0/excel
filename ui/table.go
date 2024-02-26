@@ -6,7 +6,7 @@ import (
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/jedib0t/go-pretty/v6/table"
-	V "github.com/stepann0/tercel/value"
+	V "github.com/stepann0/excel/value"
 )
 
 type Cell struct {

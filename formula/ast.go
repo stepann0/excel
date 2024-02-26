@@ -1,6 +1,6 @@
 package formula
 
-import "github.com/stepann0/tercel/value"
+import "github.com/stepann0/excel/value"
 
 type Node interface {
 	tokenLiteral() string

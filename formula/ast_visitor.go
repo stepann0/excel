@@ -3,8 +3,8 @@ package formula
 import (
 	"fmt"
 
-	"github.com/stepann0/tercel/functions"
-	V "github.com/stepann0/tercel/value"
+	"github.com/stepann0/excel/functions"
+	V "github.com/stepann0/excel/value"
 )
 
 var (

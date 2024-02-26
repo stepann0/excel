@@ -3,7 +3,7 @@ package functions
 import (
 	"math"
 
-	V "github.com/stepann0/tercel/value"
+	V "github.com/stepann0/excel/value"
 )
 
 func Sin(a V.Value) V.Number[float64] {

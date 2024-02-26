@@ -1,4 +1,4 @@
-module github.com/stepann0/tercel
+module github.com/stepann0/excel
 
 go 1.21.3
 

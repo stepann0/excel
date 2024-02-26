@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/awesome-gocui/gocui"
-	"github.com/stepann0/tercel/ui"
-	"github.com/stepann0/tercel/value"
+	"github.com/stepann0/excel/ui"
+	"github.com/stepann0/excel/value"
 )
 
 func main() {
