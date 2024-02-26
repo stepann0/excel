@@ -1,4 +1,4 @@
-package formula
+package value
 
 import (
 	"fmt"
@@ -8,10 +8,9 @@ import (
 type CellType int
 
 const (
-	Null CellType = iota
-	Text
-	Number__
-	Formula
+	Empty      CellType = iota // Just empty cell; nil
+	ConstValue                 // Contains inserted number, text, bool or other
+	Formula                    // Starts with '='
 )
 
 type FormulaData struct {
@@ -20,21 +19,38 @@ type FormulaData struct {
 }
 
 type DataCell struct {
-	dtype CellType
-	data  any
+	Type CellType
+	Data Value
+	Text string // Inserted text (e.g "=sum(A1:A10)", "2.1828", "TRUE")
 }
 
-func (c *DataCell) Type() CellType {
-	return c.dtype
-}
+func (c *DataCell) Put(text string) {
+	if len(text) == 0 {
+		return
+	}
+	c.Text = text
+	if text[0] == '=' {
+		c.Type = Formula
+		return
+	}
 
-func (c *DataCell) Data() any {
-	return c.data
-}
+	c.Type = ConstValue
+	var int_n int64
+	var float_n float64
+	var err error
 
-func (c *DataCell) Put(data any, dtype CellType) {
-	c.data = data
-	c.dtype = dtype
+	int_n, err = strconv.ParseInt(text, 10, 64)
+	if err == nil {
+		c.Data = Number[int]{int(int_n)}
+		return
+	}
+
+	float_n, err = strconv.ParseFloat(text, 64)
+	if err == nil {
+		c.Data = Number[float64]{float_n}
+		return
+	}
+	c.Data = String{text}
 }
 
 type DataTable struct {
@@ -73,43 +89,6 @@ func (t *DataTable) AtRef(ref string) *DataCell {
 	return t.At(x, y)
 }
 
-func (t *DataTable) PutRef(ref string, data any, dtype CellType) {
-	x, y := refToInd(ref)
-	t.Put(x, y, data, dtype)
-}
-
-func (t *DataTable) Put(x, y int, data any, dtype CellType) {
-	if dtype == Formula {
-		// expr := data.(string)
-		// p := NewParser(expr, t)
-		// data = FormulaData{expr, p.Eval()}
-	}
-	c := t.At(x, y)
-	c.Put(data, dtype)
-}
-
-func (t *DataTable) GetCol(num int) []any {
-	if !(num >= 0 && num < t.cols) {
-		panic("colomn out of table")
-	}
-	res := []any{}
-	for r := 0; r < t.rows; r++ {
-		res = append(res, t.At(num, r).data)
-	}
-	return res
-}
-
-func (t *DataTable) GetRow(num int) []any {
-	if !(num >= 0 && num < t.rows) {
-		panic("row out of table")
-	}
-	res := []any{}
-	for _, c := range t.data[num] {
-		res = append(res, c.data)
-	}
-	return res
-}
-
 func (t *DataTable) GetRange(ref1, ref2 string) []any {
 	col1, row1 := refToInd(ref1)
 	col2, row2 := refToInd(ref2)
@@ -118,11 +97,11 @@ func (t *DataTable) GetRange(ref1, ref2 string) []any {
 	}
 	if row1 == row2 {
 		// return a row
-		return t.GetRow(row1)[col1 : col2+1]
+		// return t.GetRow(row1)[col1 : col2+1]
 	}
 	if col1 == col2 {
 		// return a coloumn
-		return t.GetCol(col1)[row1 : row2+1]
+		// return t.GetCol(col1)[row1 : row2+1]
 	}
 	panic(fmt.Errorf("range dimentions error: %s:%s", ref1, ref2))
 }

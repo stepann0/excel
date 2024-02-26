@@ -1,12 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/awesome-gocui/gocui"
-	"github.com/stepann0/tercel/data"
 	"github.com/stepann0/tercel/ui"
+	"github.com/stepann0/tercel/value"
 )
 
 func main() {
@@ -17,8 +14,7 @@ func main() {
 	defer g.Close()
 
 	maxX, maxY := g.Size()
-	data_table := data.NewTable(13, 10)
-	data.LoadCSV(data_table, os.Args[1])
+	data_table := value.NewTable(13, 10)
 	table := ui.NewTable("table", 3, 5, data_table)
 
 	formulaInput := ui.NewFormulaInput("formulaInput", 3, 1, 70, true, table)
@@ -41,51 +37,4 @@ func main() {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
-}
-
-func _main() {
-	data_table := data.NewTable(13, 10)
-	data.LoadCSV(data_table, os.Args[1])
-	fmt.Println(data_table.GetRange("A1", "A3"))
-	fmt.Println(data_table.GetRange("A1", "A6"))
-	fmt.Println(data_table.GetRange("A5", "D5"))
-	exp := []string{
-		// "5+(A1:A3)+H4+B2:B4+(3)",
-		// "max((34+1), -(pow(2, 5)), 3.1415)",
-		// "max(pow(3, -(3)), 0)",
-		// "max(min(1, 10), 2/3*3.1415)",
-		// "sin(max(min(1, 10), 2/3*3.1415))",
-		// "-cos(max(min(1, 10), 2/3*3.1415))",
-		// "avg(-3, -2, -1, 0, 1, 0)",
-		// "max(4/24, 5/25/2*4, 6/26, 7/27, 8/28)",
-		// "5",
-		// "-5",
-		// "500/2/10/5+10-2",
-		// "1+2-3.1415*10+100",
-		// "-(-(-(-4)))",
-		// "----4",
-		// "34",
-		// "(0.31415*3+(2/77-1) * 100)",
-		// "((-14.98+34.241*0.4)/(-(201.2+33.241)*(0.05))-(11)+1852.098)",
-		// "-(3053450.352463)/-(-123346)*+(0.00053524)",
-		// "-A1",
-		// "B4",
-		// "-A1+B4",
-		// "(A3-B2)+B1*C5",
-		// "A5:D5",
-		// "A1:A6",
-		// "pow(2, 3)",
-		// "sin(0)+cos(3.1415)",
-		// "F6", "F1",
-		// "sum(0, 1, F6, F1)",
-		// "sum(A6:F6, 100)",
-		// "avg(A6:F6, -100)",
-
-		// "max(A2:D2)",
-		// "sum(A1:A3)",
-	}
-	for _, e := range exp {
-		p := data.NewParser(e, data_table)
-		fmt.Println(e, ": ", p.Eval())
-	}
 }

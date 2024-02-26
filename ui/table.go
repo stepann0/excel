@@ -6,16 +6,16 @@ import (
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/stepann0/tercel/data"
+	V "github.com/stepann0/tercel/value"
 )
 
 type Cell struct {
 	Widget
-	cell   *data.DataCell
+	cell   *V.DataCell
 	adress string
 }
 
-func NewCell(adress string, x, y, w, h int, cell *data.DataCell) *Cell {
+func NewCell(adress string, x, y, w, h int, cell *V.DataCell) *Cell {
 	return &Cell{
 		Widget: Widget{
 			name: "cell_" + adress,
@@ -38,18 +38,6 @@ func (c *Cell) Layout(g *gocui.Gui) error {
 		}
 		v.Frame = false
 	}
-	switch c.Type() {
-	case data.Number:
-		c.fg = gocui.ColorBlue
-	case data.Text:
-		c.fg = gocui.ColorGreen
-	case data.Formula:
-		c.fg = gocui.ColorMagenta
-		result := c.Data().(data.FormulaData).Val
-		if result.Type() == data.ResError {
-			c.fg = gocui.ColorRed
-		}
-	}
 
 	v.BgColor = c.bg
 	v.FgColor = c.fg
@@ -71,54 +59,34 @@ func (c Cell) String() string {
 		return ""
 	}
 	text := fmt.Sprint(c.Data())
-	if c.Type() == data.Formula {
-		result := c.Data().(data.FormulaData).Val
-		switch result.Type() {
-		case data.ResError:
-			text = fmt.Sprintf("%5s", "###")
-		case data.ResNil:
-			text = ""
-		case data.ResNumber:
-			text = fmt.Sprint(result.Value().(float64))
-		case data.ResRange:
-			text = "#rng"
-		}
-	}
 	if len(text) >= c.w {
 		text = text[:c.w-2] + "…"
 	}
 	return text
 }
 
-func (c Cell) InputString() string {
-	if c.Data() == nil {
-		return ""
-	}
-	text := fmt.Sprint(c.Data())
-	if c.Type() == data.Formula {
-		text = c.Data().(data.FormulaData).Expr
-	}
-	return text
+func (c *Cell) InputString() string {
+	return c.cell.Text
 }
 
-func (c *Cell) Type() data.CellType {
-	return c.cell.Type()
+func (c *Cell) Type() V.CellType {
+	return c.cell.Type
 }
 
-func (c *Cell) Data() any {
-	return c.cell.Data()
+func (c *Cell) Data() V.Value {
+	return c.cell.Data
 }
 
 type Table struct {
 	Widget
-	DataTable       *data.DataTable
+	DataTable       *V.DataTable
 	cols, rows      int
 	cells           [][]*Cell
 	coloumnWidth    int
 	currentCellAddr []int // address is []int{x, y}
 }
 
-func NewTable(name string, x, y int, data *data.DataTable) *Table {
+func NewTable(name string, x, y int, data *V.DataTable) *Table {
 	t := &Table{
 		Widget: Widget{
 			name: name,

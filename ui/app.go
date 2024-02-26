@@ -2,7 +2,6 @@ package ui
 
 import (
 	"github.com/awesome-gocui/gocui"
-	"github.com/stepann0/tercel/data"
 )
 
 type Mode int
@@ -149,10 +148,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 		case gocui.KeyTab:
 			line.EditWrite('\t')
 		case gocui.KeyEnter:
-			c := app.table.currCell()
-			data, dtype := data.ConvertType(line.Buffer())
-			app.table.DataTable.PutRef(c.adress, data, dtype)
-			app.NormalMode(v, key, ch, mod)
+			// Put value in cell
 		case gocui.KeyEsc:
 			app.mode = NORMAL
 			app.NormalMode(v, key, ch, mod)
