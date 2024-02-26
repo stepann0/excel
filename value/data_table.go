@@ -5,11 +5,6 @@ import (
 	"strconv"
 )
 
-const (
-	TRUE_LITERAL  = "TRUE"
-	FALSE_LITERAL = "FALSE"
-)
-
 type CellType int
 
 const (
