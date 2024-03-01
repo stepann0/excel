@@ -81,6 +81,9 @@ func (p *Parser) factor() Node {
 
 func (p *Parser) base() Node {
 	if p.curTok.is("num") {
+		if int_num, err := strconv.ParseInt(p.curTok.literal, 10, 32); err == nil {
+			return &NumberLit[int]{p.eat(), int(int_num)}
+		}
 		num, err := strconv.ParseFloat(p.curTok.literal, 64)
 		if err != nil {
 			panic(err)

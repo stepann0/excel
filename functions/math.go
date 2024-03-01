@@ -8,7 +8,16 @@ import (
 )
 
 func OneArgReturnFloat(fn func(float64) float64, a V.Value) V.Number[float64] {
-	number := a.(V.Number[float64]).Val
+	var number float64
+	switch a := a.(type) {
+	case V.Number[float64]:
+		number = a.Val
+	case V.Number[int]:
+		number = float64(a.Val)
+	default:
+		println("math functions")
+		V.TypeError()
+	}
 	return V.Number[float64]{Val: fn(number)}
 }
 

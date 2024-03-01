@@ -1,15 +1,13 @@
 package functions
 
 import (
-	"errors"
-
 	V "github.com/stepann0/excel/value"
 )
 
 var FuncList map[string]FunctionProto
 
 type ExcelFunction func([]V.Value) V.Value
-type ArgCFunc func([]V.Value) bool // Example: {atLeast(1), lessThan(3), anyCoun, oneNumber, range...}
+type ArgCFunc func([]V.Value) bool // Example: atLeast(1), lessThan(3)
 
 type FunctionProto struct {
 	fn       ExcelFunction
@@ -18,7 +16,7 @@ type FunctionProto struct {
 
 func (f *FunctionProto) Call(args []V.Value) V.Value {
 	if !f.argCheck(args) {
-		return V.Error{errors.New("wrong arg count")}
+		V.ArgCountError()
 	}
 	return f.fn(args)
 }
@@ -29,6 +27,7 @@ func init() {
 	}
 
 	FuncList = map[string]FunctionProto{
+		// Math
 		"sin": {
 			fn:       Sin,
 			argCheck: exactly(1),
@@ -49,6 +48,7 @@ func init() {
 			fn:       Rand,
 			argCheck: lessThan(2),
 		},
+		// Statistics
 		"sum": {
 			fn:       Sum,
 			argCheck: atLeast(0),

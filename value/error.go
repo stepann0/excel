@@ -14,3 +14,19 @@ func (e Error) String() string {
 	}
 	return fmt.Sprintf("#ERR: %s", e.Msg.Error())
 }
+
+func errorf(format string, args ...interface{}) {
+	panic(fmt.Errorf(format, args...))
+}
+
+func TypeError() {
+	errorf("Type error")
+}
+
+func ArgCountError() {
+	errorf("Wrong number of arguments")
+}
+
+func NotImplementedError() {
+	errorf("Not implemented")
+}
