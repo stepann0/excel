@@ -60,7 +60,7 @@ func (o *UnOperator) tokenLiteral() string { return o.token.literal }
 // --- Reference ---
 type ReferenceLit struct {
 	token Token
-	table *DataTable
+	table *value.DataTable
 }
 
 func (r *ReferenceLit) tokenLiteral() string { return r.token.literal }

@@ -58,13 +58,11 @@ func (fc *FuncCall) Eval() V.Value {
 	for _, a := range fc.args {
 		args = append(args, a.Eval())
 	}
-	switch fc.tokenLiteral() {
-	case "sin":
-		return functions.Sin(args[0])
-	case "sum":
-		return functions.Sum(args)
+	callie, ok := functions.FuncList[fc.tokenLiteral()]
+	if !ok {
+		return V.Error{NotImplementedError}
 	}
-	return V.Error{Msg: NotImplementedError}
+	return callie.Call(args)
 }
 
 func (ref *ReferenceLit) Eval() V.Value {

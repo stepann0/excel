@@ -1,27 +1,79 @@
 package functions
 
 import (
-	"math"
+	"errors"
 
 	V "github.com/stepann0/excel/value"
 )
 
-func Sin(a V.Value) V.Number[float64] {
-	res := math.Sin(a.(V.Number[float64]).Val)
-	return V.Number[float64]{Val: res}
+var FuncList map[string]FunctionProto
+
+type ExcelFunction func([]V.Value) V.Value
+type ArgCFunc func([]V.Value) bool // Example: {atLeast(1), lessThan(3), anyCoun, oneNumber, range...}
+
+type FunctionProto struct {
+	fn       ExcelFunction
+	argCheck ArgCFunc
 }
 
-func Sum(area []V.Value) V.Number[float64] {
-	S := 0.0
-	for _, v := range area {
-		switch it := v.(type) {
-		case V.Number[int]:
-			S += float64(it.Val)
-		case V.Number[float64]:
-			S += it.Val
-		case V.Boolean:
-			S += it.ToFloat().Val
-		}
+func (f *FunctionProto) Call(args []V.Value) V.Value {
+	if !f.argCheck(args) {
+		return V.Error{errors.New("wrong arg count")}
 	}
-	return V.Number[float64]{Val: S}
+	return f.fn(args)
+}
+
+func init() {
+	if FuncList != nil {
+		return
+	}
+
+	FuncList = map[string]FunctionProto{
+		"sin": {
+			fn:       Sin,
+			argCheck: exactly(1),
+		},
+		"cos": {
+			fn:       Cos,
+			argCheck: exactly(1),
+		},
+		"abs": {
+			fn:       Abs,
+			argCheck: exactly(1),
+		},
+		"exp": {
+			fn:       Exp,
+			argCheck: exactly(1),
+		},
+		"rand": {
+			fn:       Rand,
+			argCheck: lessThan(2),
+		},
+		"sum": {
+			fn:       Sum,
+			argCheck: atLeast(0),
+		},
+		"avg": {
+			fn:       Avg,
+			argCheck: atLeast(0),
+		},
+	}
+}
+
+func atLeast(n int) ArgCFunc {
+	return func(args []V.Value) bool {
+		return len(args) >= n
+	}
+}
+
+func exactly(n int) ArgCFunc {
+	return func(v []V.Value) bool {
+		return len(v) == n
+	}
+}
+
+func lessThan(n int) ArgCFunc {
+	return func(args []V.Value) bool {
+		return len(args) < n
+	}
 }

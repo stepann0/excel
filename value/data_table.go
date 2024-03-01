@@ -1,7 +1,9 @@
 package value
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strconv"
 )
 
@@ -97,6 +99,12 @@ func (t *DataTable) AtRef(ref string) *DataCell {
 	return t.At(x, y)
 }
 
+func refToInd(ref string) (int, int) {
+	x := int(ref[0] - 65) // 'A'-65 = 0
+	y, _ := strconv.Atoi(ref[1:])
+	return x, y - 1
+}
+
 func (t *DataTable) GetRange(ref1, ref2 string) []any {
 	col1, row1 := refToInd(ref1)
 	col2, row2 := refToInd(ref2)
@@ -114,8 +122,27 @@ func (t *DataTable) GetRange(ref1, ref2 string) []any {
 	panic(fmt.Errorf("range dimentions error: %s:%s", ref1, ref2))
 }
 
-func refToInd(ref string) (int, int) {
-	x := int(ref[0] - 65) // 'A'-65 = 0
-	y, _ := strconv.Atoi(ref[1:])
-	return x, y - 1
+func LoadCSV(t *DataTable, path string) {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	csvReader := csv.NewReader(file)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		panic(err)
+	}
+	if len(records) == 0 {
+		return
+	}
+	rows, cols := len(records), len(records[0])
+	if x, y := t.Cols(), t.Rows(); rows > y || cols > x {
+		return
+	}
+
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			t.At(j, i).Put(records[i][j])
+		}
+	}
 }

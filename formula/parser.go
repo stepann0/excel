@@ -3,15 +3,17 @@ package formula
 import (
 	"fmt"
 	"strconv"
+
+	V "github.com/stepann0/excel/value"
 )
 
 type Parser struct {
 	lex       *Lexer
 	curTok    Token
-	dataTable *DataTable
+	dataTable *V.DataTable
 }
 
-func NewParser(expr string, table *DataTable) *Parser {
+func NewParser(expr string, table *V.DataTable) *Parser {
 	p := &Parser{
 		lex:       NewLexer(expr),
 		dataTable: table,
