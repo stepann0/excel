@@ -110,7 +110,7 @@ func (p *Parser) atom() Node {
 		return &b
 	} else if p.curTok.is("(") {
 		p.eat()
-		expr := p.sum()
+		expr := p.equality()
 		p.expect(")", "missing ')'")
 		return expr
 	} else if p.curTok.is("func") {
@@ -136,10 +136,10 @@ func (p *Parser) argList() []Node {
 	if p.curTok.is(")") {
 		return []Node{}
 	}
-	arg_list := []Node{p.sum()}
+	arg_list := []Node{p.equality()}
 	for p.curTok.is(",") {
 		p.eat()
-		arg_list = append(arg_list, p.sum())
+		arg_list = append(arg_list, p.equality())
 	}
 	return arg_list
 }

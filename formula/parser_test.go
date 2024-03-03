@@ -44,22 +44,19 @@ var evalTest = []struct {
 }{
 	{
 		"((-14.98+34.241*0.4)/(-(201.2+33.241)*(0.05))-(11)+1852.098)",
-		V.FromFloat(1841.207503031),
+		V.Float{1841.207503031},
 	},
 	{
-		"10+10+(15)",
-		V.Number[int]{(10 + 10 + (15))},
+		"1000 - (50 + 10 - 2000 + 9876) * 2 * (300 - 1200 + 4*120)",
+		V.Int{1000 - (50+10-2000+9876)*2*(300-1200+4*120)},
 	},
-	{
-		"100",
-		V.Number[int]{100},
-	},
-	{"+-+200", V.Number[int]{-200}},
+	{"100", V.Int{100}},
+	{"+-+200", V.Int{-200}},
 	{
 		"sum(abs(-3), abs(+4), exp(5), 100)",
-		V.FromFloat(3 + 4 + math.Exp(5) + 100),
+		V.Float{3 + 4 + math.Exp(5) + 100},
 	},
-	{"sin(150)", V.FromFloat(math.Sin(150))},
+	{"sin(150)", V.Float{math.Sin(150)}},
 	{"true()", V.Boolean{true}},
 	{"false()", V.Boolean{false}},
 	{"and(FALSE, TRUE)", V.Boolean{false}},
@@ -67,6 +64,14 @@ var evalTest = []struct {
 	{"xor(FALSE, TRUE)", V.Boolean{true}},
 	{"xor(TRUE, TRUE)", V.Boolean{false}},
 	{"not(FALSE)", V.Boolean{true}},
+	{
+		"100 - 10 = 50 + 40",
+		V.Boolean{true},
+	},
+	{
+		"0 < 1.0001 = (10.0 / 2 < 100/2)",
+		V.Boolean{0 < 1.0001 == (10.0/2 < 100/2)},
+	},
 }
 
 func ValEq(a, b V.Value) bool {
@@ -74,13 +79,13 @@ func ValEq(a, b V.Value) bool {
 		return a == nil && b == nil
 	}
 	switch a := a.(type) {
-	case V.Number[float64]:
+	case V.Float:
 		// almost equal
-		if b, ok := b.(V.Number[float64]); !ok || math.Abs(a.Val-b.Val) > 0.0001 {
+		if b, ok := b.(V.Float); !ok || math.Abs(a.Val-b.Val) > 0.0001 {
 			return false
 		}
-	case V.Number[int]:
-		if b, ok := b.(V.Number[int]); !ok || a.Val != b.Val {
+	case V.Int:
+		if b, ok := b.(V.Int); !ok || a.Val != b.Val {
 			return false
 		}
 	case V.String:

@@ -8,6 +8,14 @@ type Error struct {
 
 func (e Error) Type() ValueType { return ErrorType }
 
+func (e Error) ToType(fn string, which ValueType) Value {
+	if which == ErrorType {
+		return e
+	}
+	TypeError()
+	return nil
+}
+
 func (e Error) String() string {
 	if e.Msg == nil {
 		return "#ERR:nil"

@@ -6,21 +6,21 @@ func Sum(area []V.Value) V.Value {
 	S := 0.0
 	for _, v := range area {
 		switch it := v.(type) {
-		case V.Number[int]:
+		case V.Int:
 			S += float64(it.Val)
-		case V.Number[float64]:
+		case V.Float:
 			S += it.Val
 		case V.Boolean:
-			S += it.ToFloat().Val
+			S += it.ToType("sum", V.FloatType).(V.Float).Val
 		}
 	}
-	return V.Number[float64]{Val: S}
+	return V.Float{Val: S}
 }
 
 func Avg(area []V.Value) V.Value {
 	if len(area) == 0 {
-		return V.FromFloat(0)
+		return V.Float{0}
 	}
-	S := Sum(area).(V.Number[float64])
-	return V.Number[float64]{Val: S.Val / float64(len(area))}
+	S := Sum(area).(V.Float)
+	return V.Float{Val: S.Val / float64(len(area))}
 }

@@ -13,73 +13,166 @@ var (
 	NotImplementedError = fmt.Errorf("not implemented")
 )
 
-func (n *NumberLit[NumType]) Eval() V.Value { return V.Number[NumType]{Val: n.val} }
-func (s *StringLit) Eval() V.Value          { return V.String{Val: s.val} }
-func (b *BoolLit) Eval() V.Value            { return V.Boolean{Val: bool(*b)} }
+func (n *NumberLit[NumType]) Eval() V.Value {
+	if fmt.Sprintf("%T", n.val) == "int" {
+		return V.Int{Val: int64(n.val)}
+	}
+	return V.Float{Val: float64(n.val)}
+}
+func (s *StringLit) Eval() V.Value { return V.String{Val: s.val} }
+func (b *BoolLit) Eval() V.Value   { return V.Boolean{Val: bool(*b)} }
+
+func promoteType(a, b V.ValueType) V.ValueType {
+	if a > b {
+		return a
+	}
+	return b
+}
 
 func (op *BiOperator) Eval() V.Value {
 	if op.token.is(":") {
 		// ref1, ref2 := op.left.tokenLiteral(), op.right.tokenLiteral()
 		V.NotImplementedError()
 	}
-
 	n1 := op.left.Eval()
 	n2 := op.right.Eval()
+	higherT := max(n1.Type(), n2.Type())
 
-	isInt := func(v V.Value) bool {
-		_, ok := v.(V.Number[int])
-		return ok
-	}
-
-	// Add, sub and mul two integers
-	if isInt(n1) && isInt(n2) && op.token.oneOf("+", "-", "*") {
-		return IntMath(op.token, n1, n2)
-	}
-	a, b := V.ToFloat(n1), V.ToFloat(n2)
-	switch {
-	case op.token.is("+"):
-		return V.Number[float64]{Val: a.Val + b.Val}
-	case op.token.is("-"):
-		return V.Number[float64]{Val: a.Val - b.Val}
-	case op.token.is("*"):
-		return V.Number[float64]{Val: a.Val * b.Val}
-	case op.token.is("/"):
-		return V.Number[float64]{Val: a.Val / b.Val}
-	case op.token.is(">"):
-	case op.token.is("<"):
-	case op.token.is("="):
-	case op.token.is("<="):
-	case op.token.is(">="):
-	case op.token.is("<>"):
-	}
-	return nil
+	a, b := n1.ToType(op.tokenLiteral(), higherT), n2.ToType(op.tokenLiteral(), higherT)
+	return applyBinary(op.tokenLiteral(), higherT, a, b)
 }
 
-func IntMath(op Token, left, right V.Value) V.Number[int] {
-	a, b := left.(V.Number[int]), right.(V.Number[int])
-	switch {
-	case op.is("+"):
-		return V.Number[int]{Val: a.Val + b.Val}
-	case op.is("-"):
-		return V.Number[int]{Val: a.Val - b.Val}
-	case op.is("*"):
-		return V.Number[int]{Val: a.Val * b.Val}
-	case op.is("/"):
-		V.TypeError()
+func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
+	type bifunc func(V.Value, V.Value) V.Value
+
+	appliers := map[string]map[V.ValueType]bifunc{
+		"+": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Int{a.(V.Int).Val + b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Float{a.(V.Float).Val + b.(V.Float).Val}
+			},
+		},
+		"-": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Int{a.(V.Int).Val - b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Float{a.(V.Float).Val - b.(V.Float).Val}
+			},
+		},
+		"*": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Int{a.(V.Int).Val * b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Float{a.(V.Float).Val * b.(V.Float).Val}
+			},
+		},
+		"/": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Int{a.(V.Int).Val / b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Float{a.(V.Float).Val / b.(V.Float).Val}
+			},
+		},
+		"<": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Int).Val < b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Float).Val < b.(V.Float).Val}
+			},
+			V.BooleanType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Boolean).Val == false}
+			},
+		},
+		">": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Int).Val > b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Float).Val > b.(V.Float).Val}
+			},
+			V.BooleanType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Boolean).Val == true}
+			},
+		},
+		"<=": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Int).Val <= b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Float).Val <= b.(V.Float).Val}
+			},
+			V.BooleanType: func(a, b V.Value) V.Value {
+				t := a.(V.Boolean).Val
+				f := b.(V.Boolean).Val
+				if t == f {
+					return V.Boolean{true}
+				}
+				return V.Boolean{t == false}
+			},
+		},
+		">=": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Int).Val >= b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Float).Val >= b.(V.Float).Val}
+			},
+			V.BooleanType: func(a, b V.Value) V.Value {
+				t := a.(V.Boolean).Val
+				f := b.(V.Boolean).Val
+				if t == f {
+					return V.Boolean{true}
+				}
+				return V.Boolean{t == true}
+			},
+		},
+		"=": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Int).Val == b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Float).Val == b.(V.Float).Val}
+			},
+			V.BooleanType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Boolean).Val == b.(V.Boolean).Val}
+			},
+		},
+		"<>": {
+			V.IntType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Int).Val != b.(V.Int).Val}
+			},
+			V.FloatType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Float).Val != b.(V.Float).Val}
+			},
+			V.BooleanType: func(a, b V.Value) V.Value {
+				return V.Boolean{a.(V.Boolean).Val != b.(V.Boolean).Val}
+			},
+		},
 	}
-	return V.Number[int]{}
+	fn := appliers[op][T]
+	if fn == nil {
+		V.NotImplementedError()
+	}
+	return fn(a, b)
 }
 
 func (op *UnOperator) Eval() V.Value {
 	if op.token.is("-") {
 		a := op.right.Eval()
 		switch a := a.(type) {
-		case V.Number[float64]:
-			return V.Number[float64]{Val: -a.Val}
-		case V.Number[int]:
-			return V.Number[int]{Val: -a.Val}
+		case V.Float:
+			return V.Float{Val: -a.Val}
+		case V.Int:
+			return V.Int{Val: -a.Val}
+		default:
+			V.TypeError()
 		}
-		V.TypeError()
 	}
 	return nil
 }

@@ -7,18 +7,18 @@ import (
 	V "github.com/stepann0/excel/value"
 )
 
-func OneArgReturnFloat(fn func(float64) float64, a V.Value) V.Number[float64] {
+func OneArgReturnFloat(fn func(float64) float64, a V.Value) V.Float {
 	var number float64
 	switch a := a.(type) {
-	case V.Number[float64]:
+	case V.Float:
 		number = a.Val
-	case V.Number[int]:
+	case V.Int:
 		number = float64(a.Val)
 	default:
 		println("math functions")
 		V.TypeError()
 	}
-	return V.Number[float64]{Val: fn(number)}
+	return V.Float{Val: fn(number)}
 }
 
 func Sin(a []V.Value) V.Value {
@@ -38,5 +38,5 @@ func Exp(a []V.Value) V.Value {
 }
 
 func Rand(_ []V.Value) V.Value {
-	return V.FromFloat(rand.Float64())
+	return V.Float{rand.Float64()}
 }

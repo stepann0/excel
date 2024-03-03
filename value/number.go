@@ -2,28 +2,57 @@ package value
 
 import "fmt"
 
-type Number[T float64 | int] struct {
-	Val T
+type Int struct {
+	Val int64
 }
 
-func (n Number[T]) Type() ValueType { return NumberType }
+func (n Int) Type() ValueType { return IntType }
 
-func (n Number[T]) String() string {
+func (n Int) String() string {
 	return fmt.Sprint(n.Val)
 }
 
-func ToFloat(n Value) Number[float64] {
-	switch n := n.(type) {
-	case Number[int]:
-		return FromFloat(float64(n.Val))
-	case Number[float64]:
-		return n
-	default:
-		TypeError()
-	}
-	return Number[float64]{}
+func (n Int) ToFloat() Float {
+	return Float{float64(n.Val)}
 }
 
-func FromFloat(n float64) Number[float64] {
-	return Number[float64]{n}
+func (n Int) ToType(fn string, toT ValueType) Value {
+	switch toT {
+	case IntType:
+		return n
+	case FloatType:
+		fl := n.ToFloat()
+		return fl
+	case BooleanType:
+		if n.Val != 0 {
+			return Boolean{true}
+		}
+		return Boolean{false}
+	}
+	TypeError()
+	return nil
+}
+
+type Float struct {
+	Val float64
+}
+
+func (n Float) Type() ValueType { return FloatType }
+
+func (n Float) String() string {
+	return fmt.Sprint(n.Val)
+}
+
+func (n Float) ToType(fn string, toT ValueType) Value {
+	switch toT {
+	case FloatType:
+		return n
+	case BooleanType:
+		if n.Val != 0 {
+			return Boolean{true}
+		}
+		return Boolean{false}
+	}
+	TypeError()
+	return nil
 }
