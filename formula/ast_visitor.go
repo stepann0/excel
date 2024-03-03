@@ -45,6 +45,12 @@ func (op *BiOperator) Eval() V.Value {
 		return V.Number[float64]{Val: a.Val * b.Val}
 	case op.token.is("/"):
 		return V.Number[float64]{Val: a.Val / b.Val}
+	case op.token.is(">"):
+	case op.token.is("<"):
+	case op.token.is("="):
+	case op.token.is("<="):
+	case op.token.is(">="):
+	case op.token.is("<>"):
 	}
 	return nil
 }

@@ -57,6 +57,31 @@ func init() {
 			fn:       Avg,
 			argCheck: atLeast(0),
 		},
+		// Logical
+		"true": {
+			fn:       True,
+			argCheck: exactly(0),
+		},
+		"false": {
+			fn:       False,
+			argCheck: exactly(0),
+		},
+		"not": {
+			fn:       Not,
+			argCheck: exactly(1),
+		},
+		"and": {
+			fn:       And,
+			argCheck: exactly(2),
+		},
+		"or": {
+			fn:       Or,
+			argCheck: exactly(2),
+		},
+		"xor": {
+			fn:       Xor,
+			argCheck: exactly(2),
+		},
 	}
 }
 

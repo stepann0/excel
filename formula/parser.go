@@ -48,38 +48,54 @@ func (p *Parser) expect(tok, msg string) {
 }
 
 func (p *Parser) mainFormula() Node {
-	result := p.expr()
+	result := p.equality()
 	p.expect("eof", fmt.Sprintf("unexpected %s", p.curTok))
 	return result
 }
 
-func (p *Parser) expr() Node {
-	t1 := p.term()
+func (p *Parser) equality() Node {
+	t1 := p.comparison()
+	for p.curTok.oneOf("=", "<>") {
+		t1 = &BiOperator{p.eat(), t1, p.comparison()}
+	}
+	return t1
+}
+
+func (p *Parser) comparison() Node {
+	t1 := p.sum()
+	for p.curTok.oneOf(">", "<", ">=", "<=") {
+		t1 = &BiOperator{p.eat(), t1, p.sum()}
+	}
+	return t1
+}
+
+func (p *Parser) sum() Node {
+	t1 := p.prod()
 	for p.curTok.oneOf("+", "-") {
-		t1 = &BiOperator{p.eat(), t1, p.term()}
+		t1 = &BiOperator{p.eat(), t1, p.prod()}
 	}
 	return t1
 }
 
-func (p *Parser) term() Node {
-	t1 := p.factor()
+func (p *Parser) prod() Node {
+	t1 := p.unary()
 	for p.curTok.oneOf("*", "/") {
-		t1 = &BiOperator{p.eat(), t1, p.factor()}
+		t1 = &BiOperator{p.eat(), t1, p.unary()}
 	}
 	return t1
 }
 
-func (p *Parser) factor() Node {
+func (p *Parser) unary() Node {
 	if p.curTok.is("-") {
-		return &UnOperator{p.eat(), p.factor()}
+		return &UnOperator{p.eat(), p.unary()}
 	} else if p.curTok.is("+") {
 		p.eat()
-		return p.factor()
+		return p.unary()
 	}
-	return p.base()
+	return p.atom()
 }
 
-func (p *Parser) base() Node {
+func (p *Parser) atom() Node {
 	if p.curTok.is("num") {
 		if int_num, err := strconv.ParseInt(p.curTok.literal, 10, 32); err == nil {
 			return &NumberLit[int]{p.eat(), int(int_num)}
@@ -94,7 +110,7 @@ func (p *Parser) base() Node {
 		return &b
 	} else if p.curTok.is("(") {
 		p.eat()
-		expr := p.expr()
+		expr := p.sum()
 		p.expect(")", "missing ')'")
 		return expr
 	} else if p.curTok.is("func") {
@@ -120,10 +136,10 @@ func (p *Parser) argList() []Node {
 	if p.curTok.is(")") {
 		return []Node{}
 	}
-	arg_list := []Node{p.expr()}
+	arg_list := []Node{p.sum()}
 	for p.curTok.is(",") {
 		p.eat()
-		arg_list = append(arg_list, p.expr())
+		arg_list = append(arg_list, p.sum())
 	}
 	return arg_list
 }

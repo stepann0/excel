@@ -65,6 +65,7 @@ func (t Token) String() string {
 
 // returns true if token belongs to one of the arguments
 // argument can only be: "*", "/", "+", "-", "(", ")", ",", ":",
+// ">", "<", "=", ">=", "<=", "<>",
 // "eof", "ref", "num", "func"
 func (t *Token) oneOf(types ...string) bool {
 	res := []bool{}
@@ -76,13 +77,9 @@ func (t *Token) oneOf(types ...string) bool {
 
 func (t *Token) is(s string) bool {
 	switch s {
-	case "+":
+	case ">", "<", "=", ">=", "<=", "<>":
 		return t.T == TokOperator && t.literal == s
-	case "-":
-		return t.T == TokOperator && t.literal == s
-	case "*":
-		return t.T == TokOperator && t.literal == s
-	case "/":
+	case "+", "-", "*", "/":
 		return t.T == TokOperator && t.literal == s
 	case "(":
 		return t.T == TokOpen
@@ -146,6 +143,8 @@ func (l *Lexer) NextToken() Token {
 			return Token{TokOperator, string(s)}
 		case s == '/':
 			return Token{TokOperator, string(s)}
+		case s == '>', s == '<', s == '=':
+			return l.comparisonOperator(s)
 		case isDigit(s) || s == '.':
 			l.reader.UnreadRune()
 			n, err := l.ReadNumber()
@@ -199,6 +198,26 @@ func (l *Lexer) ReadIdentifier() string {
 		return isLetter(r) || isDigit(r)
 	})
 	return buf.String()
+}
+
+func (l *Lexer) comparisonOperator(first_half rune) Token {
+	second_half, _, err := l.reader.ReadRune()
+	if err == io.EOF || second_half != '<' && second_half != '>' && second_half != '=' {
+		op := Token{TokOperator, string(first_half)}
+		l.reader.UnreadRune()
+		return op
+	}
+	// err != EOF and second rune is <, > or =
+	if err != nil {
+		panic(err)
+	}
+
+	op := string(first_half) + string(second_half)
+	switch op {
+	case ">=", "<=", "<>":
+		return Token{TokOperator, op}
+	}
+	panic("invalid comparison operator")
 }
 
 func isRef(id string) bool {

@@ -8,21 +8,25 @@ import (
 	V "github.com/stepann0/excel/value"
 )
 
-var inputs []string = []string{
-	"-(-(-(-4)))",
-	"((-14.98+34.241*0.4)/(-(201.2+33.241)*(0.05))-(11)+1852.098)",
+var parseTests []string = []string{
+	"100 >= 10",
+	"90*80 > 100-3",
+	"5 >= 4-2 = 3*2 <> 10 < 0",
+	"10 =< 90",
+}
 
-	"A2+A4*4", "A4:B23",
-	"TRUE", "  FALSE  ", "TRUE()",
-	" abs(-4) * 2 - (-1 + 3*2) + true() - sum(2, -3) * pi()",
-	"sum(-3.1314, 0, 50, 60) + (-3)*3",
-	"sum()", "max(TRUE, FALSE, FALSE, TRUE)",
-	"sum(10, 10+0.0, 20*20/40, 100-(30+60))",
-	"sin(0)", "sin(3.1415)", "avg TRUE",
+func TestParse(t *testing.T) {
+	fmt.Println((4 > 5) == (10 < 5))
+	for _, test := range parseTests {
+		p := NewParser(test, nil)
+		node := p.Parse()
+		fmt.Printf("%#v\nTree: %s\n\n", test, node.inspect(0))
+	}
 }
 
 func TestLex(t *testing.T) {
-	expr := "TRUE, FALSE, (-102030.9876 + \t \t 0.0) A2, W30:Z40 sum(9.8, 7.002, 4)"
+	// expr := "TRUE, FALSE, (-102030.9876 + \t \t 0.0) A2, W30:Z40 sum(9.8, 7.002, 4)"
+	expr := "1>23 4<0  <=  500.2 >=  0=0 10 <>100 <="
 	l := NewLexer(expr)
 	fmt.Printf("%#v\n", expr)
 
@@ -43,7 +47,7 @@ var evalTest = []struct {
 		V.FromFloat(1841.207503031),
 	},
 	{
-		"10+10+15",
+		"10+10+(15)",
 		V.Number[int]{(10 + 10 + (15))},
 	},
 	{
@@ -56,8 +60,13 @@ var evalTest = []struct {
 		V.FromFloat(3 + 4 + math.Exp(5) + 100),
 	},
 	{"sin(150)", V.FromFloat(math.Sin(150))},
-	{"TRUE", V.Boolean{true}},
-	{"FALSE", V.Boolean{false}},
+	{"true()", V.Boolean{true}},
+	{"false()", V.Boolean{false}},
+	{"and(FALSE, TRUE)", V.Boolean{false}},
+	{"or(FALSE, TRUE)", V.Boolean{true}},
+	{"xor(FALSE, TRUE)", V.Boolean{true}},
+	{"xor(TRUE, TRUE)", V.Boolean{false}},
+	{"not(FALSE)", V.Boolean{true}},
 }
 
 func ValEq(a, b V.Value) bool {
@@ -91,7 +100,7 @@ func ValEq(a, b V.Value) bool {
 	return true
 }
 
-func TestParse(t *testing.T) {
+func TestEval(t *testing.T) {
 	for _, test := range evalTest {
 		fmt.Println(test.expr)
 		p := NewParser(test.expr, nil)
