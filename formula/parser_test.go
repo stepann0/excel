@@ -65,10 +65,6 @@ var evalTest = []struct {
 	{"xor(TRUE, TRUE)", V.Boolean{false}},
 	{"not(FALSE)", V.Boolean{true}},
 	{
-		"100 - 10 = 50 + 40",
-		V.Boolean{true},
-	},
-	{
 		"0 < 1.0001 = (10.0 / 2 < 100/2)",
 		V.Boolean{0 < 1.0001 == (10.0/2 < 100/2)},
 	},

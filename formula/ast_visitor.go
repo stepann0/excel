@@ -85,9 +85,9 @@ func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
 			V.FloatType: func(a, b V.Value) V.Value {
 				return V.Boolean{a.(V.Float).Val < b.(V.Float).Val}
 			},
-			V.BooleanType: func(a, b V.Value) V.Value {
-				return V.Boolean{a.(V.Boolean).Val == false}
-			},
+			// V.BooleanType: func(a, b V.Value) V.Value {
+			// 	return V.Boolean{a.(V.Boolean).Val == false}
+			// },
 		},
 		">": {
 			V.IntType: func(a, b V.Value) V.Value {
@@ -96,9 +96,9 @@ func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
 			V.FloatType: func(a, b V.Value) V.Value {
 				return V.Boolean{a.(V.Float).Val > b.(V.Float).Val}
 			},
-			V.BooleanType: func(a, b V.Value) V.Value {
-				return V.Boolean{a.(V.Boolean).Val == true}
-			},
+			// V.BooleanType: func(a, b V.Value) V.Value {
+			// 	return V.Boolean{a.(V.Boolean).Val == true}
+			// },
 		},
 		"<=": {
 			V.IntType: func(a, b V.Value) V.Value {
@@ -107,14 +107,14 @@ func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
 			V.FloatType: func(a, b V.Value) V.Value {
 				return V.Boolean{a.(V.Float).Val <= b.(V.Float).Val}
 			},
-			V.BooleanType: func(a, b V.Value) V.Value {
-				t := a.(V.Boolean).Val
-				f := b.(V.Boolean).Val
-				if t == f {
-					return V.Boolean{true}
-				}
-				return V.Boolean{t == false}
-			},
+			// V.BooleanType: func(a, b V.Value) V.Value {
+			// 	t := a.(V.Boolean).Val
+			// 	f := b.(V.Boolean).Val
+			// 	if t == f {
+			// 		return V.Boolean{true}
+			// 	}
+			// 	return V.Boolean{t == false}
+			// },
 		},
 		">=": {
 			V.IntType: func(a, b V.Value) V.Value {
@@ -123,14 +123,14 @@ func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
 			V.FloatType: func(a, b V.Value) V.Value {
 				return V.Boolean{a.(V.Float).Val >= b.(V.Float).Val}
 			},
-			V.BooleanType: func(a, b V.Value) V.Value {
-				t := a.(V.Boolean).Val
-				f := b.(V.Boolean).Val
-				if t == f {
-					return V.Boolean{true}
-				}
-				return V.Boolean{t == true}
-			},
+			// V.BooleanType: func(a, b V.Value) V.Value {
+			// 	t := a.(V.Boolean).Val
+			// 	f := b.(V.Boolean).Val
+			// 	if t == f {
+			// 		return V.Boolean{true}
+			// 	}
+			// 	return V.Boolean{t == true}
+			// },
 		},
 		"=": {
 			V.IntType: func(a, b V.Value) V.Value {
@@ -139,9 +139,9 @@ func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
 			V.FloatType: func(a, b V.Value) V.Value {
 				return V.Boolean{a.(V.Float).Val == b.(V.Float).Val}
 			},
-			V.BooleanType: func(a, b V.Value) V.Value {
-				return V.Boolean{a.(V.Boolean).Val == b.(V.Boolean).Val}
-			},
+			// V.BooleanType: func(a, b V.Value) V.Value {
+			// 	return V.Boolean{a.(V.Boolean).Val == b.(V.Boolean).Val}
+			// },
 		},
 		"<>": {
 			V.IntType: func(a, b V.Value) V.Value {
@@ -150,9 +150,9 @@ func applyBinary(op string, T V.ValueType, a, b V.Value) V.Value {
 			V.FloatType: func(a, b V.Value) V.Value {
 				return V.Boolean{a.(V.Float).Val != b.(V.Float).Val}
 			},
-			V.BooleanType: func(a, b V.Value) V.Value {
-				return V.Boolean{a.(V.Boolean).Val != b.(V.Boolean).Val}
-			},
+			// V.BooleanType: func(a, b V.Value) V.Value {
+			// 	return V.Boolean{a.(V.Boolean).Val != b.(V.Boolean).Val}
+			// },
 		},
 	}
 	fn := appliers[op][T]

@@ -9,7 +9,8 @@ type Boolean struct {
 	Val bool
 }
 
-func (b Boolean) Type() ValueType { return BooleanType }
+// in Excel TRUE and FALSE are just 1 and 0, so it is IntType
+func (b Boolean) Type() ValueType { return IntType }
 
 func (b Boolean) ToType(fn string, toT ValueType) Value {
 	switch toT {
@@ -17,14 +18,14 @@ func (b Boolean) ToType(fn string, toT ValueType) Value {
 		return b
 	case IntType:
 		if b.Val {
-			return &Int{1}
+			return Int{1}
 		}
-		return &Int{0}
+		return Int{0}
 	case FloatType:
 		if b.Val {
-			return &Float{1.0}
+			return Float{1.0}
 		}
-		return &Float{0.0}
+		return Float{0.0}
 	}
 	TypeError()
 	return nil
