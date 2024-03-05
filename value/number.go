@@ -2,57 +2,46 @@ package value
 
 import "fmt"
 
-type Int struct {
-	Val int64
-}
+type Int int64
 
 func (n Int) Type() ValueType { return IntType }
 
 func (n Int) String() string {
-	return fmt.Sprint(n.Val)
+	return fmt.Sprint(n)
 }
 
-func (n Int) ToFloat() Float {
-	return Float{float64(n.Val)}
-}
-
-func (n Int) ToType(fn string, toT ValueType) Value {
+func (n Int) ToType(fn string, toT ValueType, abort bool) Value {
 	switch toT {
 	case IntType:
 		return n
 	case FloatType:
-		fl := n.ToFloat()
-		return fl
+		return Float(n)
 	case BooleanType:
-		if n.Val != 0 {
-			return Boolean{true}
-		}
-		return Boolean{false}
+		return Boolean(n != 0)
 	}
-	TypeError()
+	if abort {
+		TypeError()
+	}
 	return nil
 }
 
-type Float struct {
-	Val float64
-}
+type Float float64
 
 func (n Float) Type() ValueType { return FloatType }
 
 func (n Float) String() string {
-	return fmt.Sprint(n.Val)
+	return fmt.Sprint(n)
 }
 
-func (n Float) ToType(fn string, toT ValueType) Value {
+func (n Float) ToType(fn string, toT ValueType, abort bool) Value {
 	switch toT {
 	case FloatType:
 		return n
 	case BooleanType:
-		if n.Val != 0 {
-			return Boolean{true}
-		}
-		return Boolean{false}
+		return Boolean(n != 0)
 	}
-	TypeError()
+	if abort {
+		TypeError()
+	}
 	return nil
 }

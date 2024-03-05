@@ -38,11 +38,11 @@ func (c *DataCell) Put(text string) {
 
 	c.Type = ConstValue
 	if text == TRUE_LITERAL {
-		c.Data = &Boolean{true}
+		c.Data = Boolean(true)
 		return
 	}
 	if text == FALSE_LITERAL {
-		c.Data = Boolean{false}
+		c.Data = Boolean(false)
 		return
 	}
 	var int_n int64
@@ -51,16 +51,16 @@ func (c *DataCell) Put(text string) {
 
 	int_n, err = strconv.ParseInt(text, 10, 64)
 	if err == nil {
-		c.Data = &Int{int_n}
+		c.Data = Int(int_n)
 		return
 	}
 
 	float_n, err = strconv.ParseFloat(text, 64)
 	if err == nil {
-		c.Data = &Float{float_n}
+		c.Data = Float(float_n)
 		return
 	}
-	c.Data = &String{text}
+	c.Data = String(text)
 }
 
 type DataTable struct {

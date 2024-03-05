@@ -1,19 +1,22 @@
 package value
 
-type String struct {
-	Val string
-}
+type String string
 
 func (s String) Type() ValueType { return StringType }
 
-func (s String) ToType(fn string, toT ValueType) Value {
-	if toT == StringType {
+func (s String) ToType(fn string, toT ValueType, abort bool) Value {
+	switch toT {
+	case StringType:
 		return s
+	case BooleanType:
+		return Boolean(len(s) > 0)
 	}
-	TypeError()
+	if abort {
+		TypeError()
+	}
 	return nil
 }
 
 func (s String) String() string {
-	return s.Val
+	return string(s)
 }

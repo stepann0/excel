@@ -16,5 +16,5 @@ const (
 type Value interface {
 	Type() ValueType
 	String() string
-	ToType(string, ValueType) Value
+	ToType(string, ValueType, bool) Value
 }

@@ -2,20 +2,20 @@ package value
 
 import "fmt"
 
-type Area struct {
-	Val []Value
-}
+type Area []Value
 
 func (a Area) Type() ValueType { return AreaType }
 
-func (a Area) ToType(fn string, which ValueType) Value {
-	if which == AreaType {
+func (a Area) ToType(fn string, toT ValueType, abort bool) Value {
+	if toT == AreaType {
 		return a
 	}
-	TypeError()
+	if abort {
+		TypeError()
+	}
 	return nil
 }
 
 func (a Area) String() string {
-	return fmt.Sprintf("area: %v", a.Val)
+	return fmt.Sprintf("area: %v", a)
 }

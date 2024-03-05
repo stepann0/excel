@@ -72,15 +72,15 @@ func init() {
 		},
 		"and": {
 			fn:       And,
-			argCheck: exactly(2),
+			argCheck: atLeast(2),
 		},
 		"or": {
 			fn:       Or,
-			argCheck: exactly(2),
+			argCheck: atLeast(2),
 		},
 		"xor": {
 			fn:       Xor,
-			argCheck: exactly(2),
+			argCheck: atLeast(2),
 		},
 	}
 }

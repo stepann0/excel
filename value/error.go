@@ -8,11 +8,16 @@ type Error struct {
 
 func (e Error) Type() ValueType { return ErrorType }
 
-func (e Error) ToType(fn string, which ValueType) Value {
-	if which == ErrorType {
+func (e Error) ToType(fn string, toT ValueType, abort bool) Value {
+	switch toT {
+	case ErrorType:
 		return e
+	case BooleanType:
+		return Boolean(false)
 	}
-	TypeError()
+	if abort {
+		TypeError()
+	}
 	return nil
 }
 

@@ -7,5 +7,5 @@ func Concat(text []V.Value) V.String {
 	for _, t := range text {
 		res += t.String()
 	}
-	return V.String{Val: res}
+	return V.String(res)
 }
