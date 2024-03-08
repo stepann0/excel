@@ -7,7 +7,7 @@ type Int int64
 func (n Int) Type() ValueType { return IntType }
 
 func (n Int) String() string {
-	return fmt.Sprint(n)
+	return fmt.Sprint(int64(n))
 }
 
 func (n Int) ToType(fn string, toT ValueType, abort bool) Value {
@@ -30,7 +30,7 @@ type Float float64
 func (n Float) Type() ValueType { return FloatType }
 
 func (n Float) String() string {
-	return fmt.Sprint(n)
+	return fmt.Sprint(float64(n))
 }
 
 func (n Float) ToType(fn string, toT ValueType, abort bool) Value {

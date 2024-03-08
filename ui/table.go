@@ -6,16 +6,17 @@ import (
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/stepann0/excel/formula"
 	V "github.com/stepann0/excel/value"
 )
 
 type Cell struct {
 	Widget
-	dcell  *V.DataCell // Underlying data cell
+	dcell  *formula.DataCell // Underlying data cell
 	adress string
 }
 
-func NewCell(adress string, x, y, w, h int, cell *V.DataCell) *Cell {
+func NewCell(adress string, x, y, w, h int, cell *formula.DataCell) *Cell {
 	return &Cell{
 		Widget: Widget{
 			name: "cell_" + adress,
@@ -67,11 +68,11 @@ func (c Cell) String() string {
 
 func (c Cell) colorizeFg() gocui.Attribute {
 	switch c.Type() {
-	case V.Formula:
+	case formula.Formula:
 		return gocui.ColorMagenta
-	case V.ConstValue:
+	case formula.ConstValue:
 		switch c.dcell.Data.Type() {
-		case V.NumberType:
+		case V.FloatType, V.IntType:
 			return gocui.ColorBlue
 		case V.StringType:
 			return gocui.ColorGreen
@@ -88,7 +89,7 @@ func (c *Cell) InputString() string {
 	return c.dcell.Text
 }
 
-func (c *Cell) Type() V.CellType {
+func (c *Cell) Type() formula.CellType {
 	return c.dcell.Type
 }
 
@@ -98,14 +99,14 @@ func (c *Cell) Data() V.Value {
 
 type Table struct {
 	Widget
-	DataTable       *V.DataTable
+	DataTable       *formula.DataTable
 	cols, rows      int
 	cells           [][]*Cell
 	coloumnWidth    int
 	currentCellAddr []int // address is []int{x, y}
 }
 
-func NewTable(name string, x, y int, data *V.DataTable) *Table {
+func NewTable(name string, x, y int, data *formula.DataTable) *Table {
 	t := &Table{
 		Widget: Widget{
 			name: name,
@@ -187,6 +188,10 @@ func (t *Table) isCurrCell(x, y int) bool {
 func (t *Table) currCell() *Cell {
 	x, y := t.currentCellAddr[0], t.currentCellAddr[1]
 	return t.cells[y][x]
+}
+
+func (t *Table) CurrCellAddr() string {
+	return t.currCell().adress
 }
 
 func (t *Table) SetCurrCell(dx, dy int) {

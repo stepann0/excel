@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/awesome-gocui/gocui"
+	"github.com/stepann0/excel/formula"
 )
 
 type Mode int
@@ -151,7 +152,7 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 			// Put value in cell
 			text := line.Buffer()
 			cell := app.table.currCell()
-			cell.dcell.Put(text)
+			cell.dcell.Put(text, app.DT())
 
 			app.mode = NORMAL
 			app.NormalMode(v, key, ch, mod)
@@ -162,6 +163,10 @@ func (app *App) InsertMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modi
 			line.EditWrite(ch)
 		}
 	})
+}
+
+func (app *App) DT() *formula.DataTable {
+	return app.table.DataTable
 }
 
 func (app *App) CommandMode(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {

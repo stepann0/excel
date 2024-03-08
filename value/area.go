@@ -17,5 +17,5 @@ func (a Area) ToType(fn string, toT ValueType, abort bool) Value {
 }
 
 func (a Area) String() string {
-	return fmt.Sprintf("area: %v", a)
+	return fmt.Sprintf("area: %v", []Value(a))
 }

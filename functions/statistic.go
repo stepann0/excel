@@ -1,6 +1,8 @@
 package functions
 
-import V "github.com/stepann0/excel/value"
+import (
+	V "github.com/stepann0/excel/value"
+)
 
 func Sum(area []V.Value) V.Value {
 	S := 0.0

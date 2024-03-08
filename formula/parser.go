@@ -3,17 +3,15 @@ package formula
 import (
 	"fmt"
 	"strconv"
-
-	V "github.com/stepann0/excel/value"
 )
 
 type Parser struct {
 	lex       *Lexer
 	curTok    Token
-	dataTable *V.DataTable
+	dataTable *DataTable
 }
 
-func NewParser(expr string, table *V.DataTable) *Parser {
+func NewParser(expr string, table *DataTable) *Parser {
 	p := &Parser{
 		lex:       NewLexer(expr),
 		dataTable: table,
@@ -106,7 +104,7 @@ func (p *Parser) atom() Node {
 		}
 		return &NumberLit[float64]{p.eat(), num}
 	} else if p.curTok.is("bool") {
-		b := BoolLit(p.eat().literal == "TRUE")
+		b := BoolLit(p.eat().literal == TRUE_LITERAL)
 		return &b
 	} else if p.curTok.is("(") {
 		p.eat()

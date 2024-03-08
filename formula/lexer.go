@@ -63,6 +63,11 @@ func (t Token) String() string {
 	return fmt.Sprintf("tok:{%s '%s'}", t.T, t.literal)
 }
 
+const (
+	FALSE_LITERAL = "FALSE"
+	TRUE_LITERAL  = "TRUE"
+)
+
 // returns true if token belongs to one of the arguments
 // argument can only be: "*", "/", "+", "-", "(", ")", ",", ":",
 // ">", "<", "=", ">=", "<=", "<>",
@@ -157,7 +162,7 @@ func (l *Lexer) NextToken() Token {
 			id := l.ReadIdentifier()
 			if isRef(id) {
 				return Token{TokReference, id}
-			} else if id == "TRUE" || id == "FALSE" {
+			} else if id == TRUE_LITERAL || id == FALSE_LITERAL {
 				return Token{TokBool, id}
 			}
 

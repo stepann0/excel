@@ -37,9 +37,9 @@ type BoolLit bool
 
 func (b *BoolLit) tokenLiteral() string {
 	if *b {
-		return "TRUE"
+		return TRUE_LITERAL
 	}
-	return "FALSE"
+	return FALSE_LITERAL
 }
 
 // --- Operators ---
@@ -60,7 +60,7 @@ func (o *UnOperator) tokenLiteral() string { return o.token.literal }
 // --- Reference ---
 type ReferenceLit struct {
 	token Token
-	table *value.DataTable
+	table *DataTable
 }
 
 func (r *ReferenceLit) tokenLiteral() string { return r.token.literal }

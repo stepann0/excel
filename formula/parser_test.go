@@ -16,7 +16,6 @@ var parseTests []string = []string{
 }
 
 func TestParse(t *testing.T) {
-	fmt.Println((4 > 5) == (10 < 5))
 	for _, test := range parseTests {
 		p := NewParser(test, nil)
 		node := p.Parse()
@@ -106,7 +105,7 @@ func TestEval(t *testing.T) {
 		fmt.Println(test.expr)
 		p := NewParser(test.expr, nil)
 		node := p.Parse()
-		fmt.Printf("%#v\nTree: %s\nResult: %#v\n\n", test.expr, node.inspect(0), node.Eval())
+		// fmt.Printf("%#v\nTree: %s\nResult: %#v\n\n", test.expr, node.inspect(0), node.Eval())
 		if got := node.Eval(); !ValEq(got, test.res) {
 			t.Errorf("%s = %s, expected %s", test.expr, got, test.res)
 		}

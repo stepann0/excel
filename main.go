@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/awesome-gocui/gocui"
+	"github.com/stepann0/excel/formula"
 	"github.com/stepann0/excel/ui"
-	"github.com/stepann0/excel/value"
 )
 
 func main() {
@@ -14,10 +14,11 @@ func main() {
 	defer g.Close()
 
 	maxX, maxY := g.Size()
-	data_table := value.NewTable(13, 10)
+	data_table := formula.NewTable(13, 10)
 	table := ui.NewTable("table", 3, 5, data_table)
+	table.DataTable.LoadCSV("/home/stepaFedora/Документы/small.csv")
 
-	formulaInput := ui.NewFormulaInput("formulaInput", 3, 1, 70, true, table)
+	formulaInput := ui.NewFormulaInput("formulaInput", 3, 1, 104, true, table)
 	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
 	cmdInput.SetBgColor(gocui.ColorBlack)
 	adressLabels := ui.NewAdressLabels(table)

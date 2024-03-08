@@ -31,8 +31,9 @@ func promoteType(a, b V.ValueType) V.ValueType {
 
 func (op *BiOperator) Eval() V.Value {
 	if op.token.is(":") {
-		// ref1, ref2 := op.left.tokenLiteral(), op.right.tokenLiteral()
-		V.NotImplementedError()
+		ref1, ref2 := op.left.tokenLiteral(), op.right.tokenLiteral()
+		rng := op.left.(*ReferenceLit).table.GetRange(ref1, ref2)
+		return V.Area(rng)
 	}
 	n1 := op.left.Eval()
 	n2 := op.right.Eval()
@@ -154,7 +155,14 @@ func (op *UnOperator) Eval() V.Value {
 func (fc *FuncCall) Eval() V.Value {
 	args := []V.Value{}
 	for _, a := range fc.args {
-		args = append(args, a.Eval())
+		ev := a.Eval()
+		// "unpack" Area
+		if ev.Type() == V.AreaType {
+			for _, b := range ev.(V.Area) {
+				args = append(args, b)
+			}
+		}
+		args = append(args, ev)
 	}
 	callie, ok := functions.FuncList[fc.tokenLiteral()]
 	if !ok {
@@ -164,7 +172,10 @@ func (fc *FuncCall) Eval() V.Value {
 }
 
 func (ref *ReferenceLit) Eval() V.Value {
-	// return ref.table.At(ref.tokenLiteral())
+	cell := ref.table.AtRef(ref.tokenLiteral())
+	if cell != nil {
+		return cell.Data
+	}
 	return nil
 }
 
