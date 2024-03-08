@@ -16,7 +16,6 @@ func main() {
 	maxX, maxY := g.Size()
 	data_table := formula.NewTable(13, 10)
 	table := ui.NewTable("table", 3, 5, data_table)
-	table.DataTable.LoadCSV("/home/stepaFedora/Документы/small.csv")
 
 	formulaInput := ui.NewFormulaInput("formulaInput", 3, 1, 104, true, table)
 	cmdInput := ui.NewInputLine("cmdInput", 7, maxY-2, maxX-10, false)
